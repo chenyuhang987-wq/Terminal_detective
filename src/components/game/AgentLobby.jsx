@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LocalStorage } from '../../game/gameState';
-import { DEFAULT_AGENT_CONFIG } from '../../game/caseData';
+import { LocalStorage } from '@/game/gameState';
+import { DEFAULT_AGENT_CONFIG } from '@/game/caseData';
 
 const STANCES = ['aggressive', 'cautious', 'analytical'];
 const ROLES = ['Lead_Investigator', 'Forensic_Analyst', 'Hacker'];

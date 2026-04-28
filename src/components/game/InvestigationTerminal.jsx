@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ReAct_Enum, Legal_Actions_List, Phase_Color_Map, Case_Data_Lvl_01 } from '../../game/caseData';
-import { createInitialGameState, generateObservation, applySettlementResult, LocalStorage } from '../../game/gameState';
-import { streamThinkSSE, getAction, settleAction, getNPCDialogue, judgeReport, parseActionTag } from '../../game/llmClient';
-import AIProcessingIndicator from './AIProcessingIndicator';
-import ClueCard from './ClueCard';
-import EvidenceBoard from './EvidenceBoard';
-import GlitchOverlay from './GlitchOverlay';
-import BSoD from './BSoD';
+import { ReAct_Enum, Legal_Actions_List, Phase_Color_Map, Case_Data_Lvl_01 } from '@/game/caseData';
+import { createInitialGameState, generateObservation, applySettlementResult, LocalStorage } from '@/game/gameState';
+import { streamThinkSSE, getAction, settleAction, getNPCDialogue, judgeReport, parseActionTag } from '@/game/llmClient';
+import AIProcessingIndicator from '@/components/game/AIProcessingIndicator';
+import ClueCard from '@/components/game/ClueCard';
+import EvidenceBoard from '@/components/game/EvidenceBoard';
+import GlitchOverlay from '@/components/game/GlitchOverlay';
+import BSoD from '@/components/game/BSoD';
 
 const PHASE_COLORS = Phase_Color_Map;
 

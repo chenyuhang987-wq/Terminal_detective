@@ -3,7 +3,7 @@
 // All LLM calls go through here. Swap backend → only change this file.
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { base44 } from '@/api/base44Client';
+import { base44 } from '/src/api/base44Client.js';
 
 const invoke = (action, payload) =>
   base44.functions.invoke('llmBridge', { action, payload });

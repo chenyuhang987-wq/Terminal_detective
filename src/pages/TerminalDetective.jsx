@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import AgentLobby from '../src/components/game/AgentLobby';
-import InvestigationTerminal from '../src/components/game/InvestigationTerminal';
-import { LocalStorage } from '../src/game/gameState';
+import AgentLobby from '@/components/game/AgentLobby';
+import InvestigationTerminal from '@/components/game/InvestigationTerminal';
+import { LocalStorage } from '@/game/gameState';
 
 const SCREENS = {
   SPLASH: 'SPLASH',
