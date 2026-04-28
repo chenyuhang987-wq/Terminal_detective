@@ -89,15 +89,15 @@ export default function DataFlowCanvas({ agents, activeAgent, flowActivity, comb
     const H = svg.clientHeight || 220;
     const px = positions.map(p => ({ x: p.x * W, y: p.y * H }));
 
-    // Init base particles
+    // Init base particles — more particles, faster speed
     particlesRef.current = [];
     edges.forEach(([a, b]) => {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 7; i++) {
         particlesRef.current.push({
           from: a, to: b, t: Math.random(),
-          speed: 0.004 + Math.random() * 0.003,
-          size: 2.5 + Math.random() * 2,
-          reverse: i % 2 === 0,
+          speed: 0.012 + Math.random() * 0.014,
+          size: 2 + Math.random() * 2.5,
+          reverse: i % 3 === 0,
         });
       }
     });
@@ -109,22 +109,33 @@ export default function DataFlowCanvas({ agents, activeAgent, flowActivity, comb
       const existing = svg.querySelectorAll('.dyn');
       existing.forEach(el => el.remove());
 
-      // ── Base edges ──────────────────────────────────────────────────────
+      // ── Base edges — solid glow line + animated dash overlay ───────────
       edges.forEach(([a, b]) => {
         const isActive = activeAgent === a || activeAgent === b;
-        const color = isActive
-          ? (activeAgent === a ? AGENT_COLORS[a] : AGENT_COLORS[b])
-          : 'rgba(255,255,255,0.06)';
+        const colA = AGENT_COLORS[a];
+        const colB = AGENT_COLORS[b];
 
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('class', 'dyn');
-        line.setAttribute('x1', px[a].x); line.setAttribute('y1', px[a].y);
-        line.setAttribute('x2', px[b].x); line.setAttribute('y2', px[b].y);
-        line.setAttribute('stroke', color);
-        line.setAttribute('stroke-width', isActive ? '1.5' : '0.8');
-        line.setAttribute('stroke-dasharray', '4 6');
-        line.setAttribute('stroke-dashoffset', -(t * 1.2));
-        svg.insertBefore(line, svg.firstChild);
+        // Static solid underline (always visible)
+        const solidLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        solidLine.setAttribute('class', 'dyn');
+        solidLine.setAttribute('x1', px[a].x); solidLine.setAttribute('y1', px[a].y);
+        solidLine.setAttribute('x2', px[b].x); solidLine.setAttribute('y2', px[b].y);
+        solidLine.setAttribute('stroke', isActive ? colA : 'rgba(255,255,255,0.18)');
+        solidLine.setAttribute('stroke-width', isActive ? '1.8' : '1');
+        solidLine.setAttribute('opacity', isActive ? '0.7' : '0.35');
+        svg.insertBefore(solidLine, svg.firstChild);
+
+        // Animated dash overlay
+        const dashLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        dashLine.setAttribute('class', 'dyn');
+        dashLine.setAttribute('x1', px[a].x); dashLine.setAttribute('y1', px[a].y);
+        dashLine.setAttribute('x2', px[b].x); dashLine.setAttribute('y2', px[b].y);
+        dashLine.setAttribute('stroke', isActive ? colB : 'rgba(0,229,255,0.3)');
+        dashLine.setAttribute('stroke-width', isActive ? '2.5' : '0.8');
+        dashLine.setAttribute('stroke-dasharray', '6 10');
+        dashLine.setAttribute('stroke-dashoffset', -(t * 2.2));
+        dashLine.setAttribute('opacity', isActive ? '0.6' : '0.2');
+        svg.insertBefore(dashLine, svg.firstChild);
       });
 
       // ── Combo FX burst particles ────────────────────────────────────────

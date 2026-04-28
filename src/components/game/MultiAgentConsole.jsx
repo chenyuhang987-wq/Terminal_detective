@@ -6,6 +6,7 @@ import DataFlowCanvas from '@/components/game/DataFlowCanvas';
 import AgentSlotCard from '@/components/game/AgentSlotCard';
 import TeamSynergyBar from '@/components/game/TeamSynergyBar';
 import PresetManager from '@/components/game/PresetManager';
+import PromptCalibration from '@/components/game/PromptCalibration';
 
 // ── Default team factory ────────────────────────────────────────────────────
 const DEFAULT_NAMES   = ['隼目', '破心', '幽灵'];
@@ -124,6 +125,21 @@ export default function MultiAgentConsole({ onDeploy }) {
 
   const updateAgent = (idx, updated) => {
     setAgents(prev => prev.map((a, i) => i === idx ? updated : a));
+  };
+
+  const handleCalibrationBonus = (bonuses) => {
+    setAgents(prev => {
+      const next = [...prev];
+      bonuses.forEach(b => {
+        if (next[b.agent_idx] && b.attr && b.points > 0) {
+          next[b.agent_idx] = {
+            ...next[b.agent_idx],
+            [b.attr]: Math.min(100, (next[b.agent_idx][b.attr] || 0) + b.points),
+          };
+        }
+      });
+      return next;
+    });
   };
 
   const handleDeploy = () => {
@@ -250,6 +266,9 @@ export default function MultiAgentConsole({ onDeploy }) {
 
         {/* ── Preset strategy manager ── */}
         <PresetManager agents={agents} onLoad={loaded => setAgents(loaded)} />
+
+        {/* ── Prompt calibration — user writes 3 directives, LLM awards bonus pts ── */}
+        <PromptCalibration agents={agents} onBonusApplied={handleCalibrationBonus} />
 
         {/* ── Agent slot cards (3 columns on desktop, stacked on mobile) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">

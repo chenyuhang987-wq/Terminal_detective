@@ -518,6 +518,88 @@ Return JSON only: {"is_absurd":false,"branch_id":null,"judge_critique":"short re
       return Response.json(result);
     }
 
+    // ─── CALIBRATE PROMPTS (extra attribute points from user directives) ──────
+    if (action === "calibrate_prompts") {
+      const { prompts, agents } = payload;
+
+      const agentDesc = agents.map(a =>
+        `  [Agent-${a.idx}] ${a.name} (${a.role}, stance:${a.stance}) — 逻辑:${a.logic_power} 观察:${a.observation_focus} 黑客:${a.hack_level}`
+      ).join('\n');
+
+      const promptDesc = prompts.map((p, i) => `  DIRECTIVE-${i+1}: "${p}"`).join('\n');
+
+      const messages = [
+        {
+          role: "system",
+          content: `You are an AI agent capability evaluator for a cyberpunk detective game.
+Three agent "architects" have written strategic directives (prompts) for their detective team.
+Your job: analyze each directive's quality, specificity, and strategic relevance, then award BONUS attribute points to the most appropriate agent+attribute combination.
+
+AGENT ROSTER:
+${agentDesc}
+
+ATTRIBUTE DEFINITIONS:
+  logic_power       — Deductive reasoning, contradiction detection, cross-clue analysis
+  observation_focus — Scene scanning, detail discovery, AP cost efficiency  
+  hack_level        — Digital infiltration, encrypted data, terminal access
+
+EVALUATION CRITERIA per directive:
+1. Is it specific and actionable (not generic)? (≥10 chars required, already guaranteed)
+2. Does it reveal a clear strategic intent?
+3. Which agent archetype does it best suit?
+4. Which attribute does it strengthen?
+5. How many bonus points (1-8) based on specificity and insight depth?
+   • Vague/generic directive: 1-2 pts
+   • Clear tactical directive: 3-5 pts
+   • Brilliant, highly specific directive with deep game insight: 6-8 pts
+
+Rules:
+- Each directive awards points to exactly ONE agent+attribute pair
+- Different directives should target different agent/attribute combos when possible
+- Total bonus points across all 3 directives: 5-18 range
+- reason: 1 concise sentence explaining the award (in Chinese, ≤30 chars)
+
+Return ONLY valid JSON:
+{
+  "summary": "<2 sentences in Chinese: overall assessment of the architect's strategic thinking>",
+  "bonuses": [
+    {"agent_idx": 0, "attr": "observation_focus", "points": 4, "reason": "指令明确强化了现场扫描策略"},
+    {"agent_idx": 1, "attr": "logic_power", "points": 3, "reason": "审讯逻辑清晰，矛盾识别能力提升"},
+    {"agent_idx": 2, "attr": "hack_level", "points": 5, "reason": "数字渗透路径定义精确，技术深度显著"}
+  ]
+}`
+        },
+        {
+          role: "user",
+          content: `Architect's directives:\n${promptDesc}\n\nEvaluate and award bonus points. Return JSON only.`
+        }
+      ];
+
+      const raw = await callLLM(messages, true, 0.5);
+      let result;
+      try {
+        result = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim());
+        // Validate agent_idx and attr
+        const validAttrs = ['logic_power', 'observation_focus', 'hack_level'];
+        result.bonuses = (result.bonuses || []).map(b => ({
+          ...b,
+          agent_idx: Math.max(0, Math.min(2, parseInt(b.agent_idx) || 0)),
+          attr: validAttrs.includes(b.attr) ? b.attr : 'logic_power',
+          points: Math.max(1, Math.min(8, parseInt(b.points) || 2)),
+        }));
+      } catch {
+        result = {
+          summary: "指令已接收，评估结果偏差较大，给予基础奖励。",
+          bonuses: [
+            { agent_idx: 0, attr: "observation_focus", points: 2, reason: "基础观察指令" },
+            { agent_idx: 1, attr: "logic_power",       points: 2, reason: "基础逻辑指令" },
+            { agent_idx: 2, attr: "hack_level",         points: 2, reason: "基础渗透指令" },
+          ]
+        };
+      }
+      return Response.json(result);
+    }
+
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
 
   } catch (error) {
