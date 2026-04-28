@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLang } from '@/lib/lang';
+import { useLang } from '@/lib/lang.jsx';
 
 // ── Animated matrix rain background ──────────────────────────────────────────
 function MatrixRain({ color = '#00ff88' }) {

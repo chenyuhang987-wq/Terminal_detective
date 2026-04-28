@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import { LangProvider } from '@/lib/lang';
+import { LangProvider } from '@/lib/lang.jsx';
 // Add page imports here
 import TerminalDetective from './pages/TerminalDetective';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLang } from '@/lib/lang';
+import { useLang } from '@/lib/lang.jsx';
 
 const DEFAULT_ZONE_LAYOUT = {
   zone_datacenter: { x: 50, y: 18, label: '数据中心', sublabel: '案发现场', icon: '💻', color: '#ff3860' },
