@@ -6,8 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
-import Lobby from './pages/Lobby';
-import Game from './pages/Game';
+import TerminalDetective from '@/pages/TerminalDetective';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -35,9 +34,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="/" element={<Lobby />} />
-      <Route path="/game" element={<Game />} />
+      <Route path="/" element={<TerminalDetective />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
