@@ -5,6 +5,7 @@ import { loadProgression, saveProgression, getLevelFromXP } from '@/game/agentPr
 import DataFlowCanvas from '@/components/game/DataFlowCanvas';
 import AgentSlotCard from '@/components/game/AgentSlotCard';
 import TeamSynergyBar from '@/components/game/TeamSynergyBar';
+import PresetManager from '@/components/game/PresetManager';
 
 // ── Default team factory ────────────────────────────────────────────────────
 const DEFAULT_NAMES   = ['隼目', '破心', '幽灵'];
@@ -215,6 +216,9 @@ export default function MultiAgentConsole({ onDeploy }) {
             +100 XP [测试]
           </button>
         </div>
+
+        {/* ── Preset strategy manager ── */}
+        <PresetManager agents={agents} onLoad={loaded => setAgents(loaded)} />
 
         {/* ── Agent slot cards (3 columns on desktop, stacked on mobile) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
