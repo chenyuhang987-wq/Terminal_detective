@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LocalStorage, createInitialGameState } from '../src/game/gameState';
-import { DEFAULT_AGENT_CONFIG, Case_Data_Lvl_01 } from '../src/game/caseData';
-import AgentConfigPanel from '../src/components/game/AgentConfigPanel';
+import { LocalStorage } from '@/game/gameState';
+import { DEFAULT_AGENT_CONFIG, Case_Data_Lvl_01 } from '@/game/caseData';
+import AgentConfigPanel from '@/components/game/AgentConfigPanel';
 
 const MATRIX_CHARS = '01アイウエオカキクケコ∑∆∇∫≈≠∞ΩΨΦ';
 

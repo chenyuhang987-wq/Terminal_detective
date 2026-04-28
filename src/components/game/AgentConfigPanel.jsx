@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LocalStorage } from '../../game/gameState';
+import { LocalStorage } from '@/game/gameState';
 
 const STANCES = ['aggressive', 'cautious', 'analytical'];
 const ROLES = ['Lead_Investigator', 'Forensic', 'Hacker'];

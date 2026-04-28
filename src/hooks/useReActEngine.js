@@ -4,9 +4,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useCallback } from 'react';
-import { ReAct_Enum, Legal_Actions_List, Case_Data_Lvl_01 } from '../game/caseData';
-import { createInitialGameState, applySettlementResult, generateObservation } from '../game/gameState';
-import { streamThink, getAction, settleAction, parseActionTag } from '../game/llmClient';
+import { ReAct_Enum, Legal_Actions_List, Case_Data_Lvl_01 } from '@/game/caseData';
+import { createInitialGameState, applySettlementResult, generateObservation } from '@/game/gameState';
+import { streamThink, getAction, settleAction, parseActionTag } from '@/game/llmClient';
 
 export function useReActEngine(agentStrategy) {
   const [gameState, setGameState] = useState(() => createInitialGameState());
@@ -239,7 +239,7 @@ export function useReActEngine(agentStrategy) {
   const submitReport = useCallback(async (reportText) => {
     setReactState(ReAct_Enum.REPORTING);
     addLog('Transmitting case report to Chief Inspector...', 'REPORTING');
-    const { judgeReport } = await import('../game/llmClient');
+    const { judgeReport } = await import('@/game/llmClient');
     const result = await judgeReport({ playerReport: reportText, caseData: Case_Data_Lvl_01 });
     setJudgeResult(result);
     addLog(`JUDGE VERDICT: Score ${result.score} — ${result.critique}`, 'REPORTING');

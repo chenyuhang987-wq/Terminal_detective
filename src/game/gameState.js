@@ -3,7 +3,7 @@
 // All game state lives here. No component may mutate state directly.
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { Case_Data_Lvl_01, DEFAULT_AGENT_CONFIG } from './caseData';
+import { DEFAULT_AGENT_CONFIG } from './caseData';
 
 // ── Initial State Factory ─────────────────────────────────────────────────
 export function createInitialGameState(caseData = Case_Data_Lvl_01) {

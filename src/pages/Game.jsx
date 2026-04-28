@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useReActEngine } from '../src/hooks/useReActEngine';
-import { LocalStorage } from '../src/game/gameState';
-import { Case_Data_Lvl_01, Phase_Color_Map } from '../src/game/caseData';
-import GlitchOverlay from '../src/components/game/GlitchOverlay';
-import BSoD from '../src/components/game/BSoD';
-import EvidenceBoard from '../src/components/game/EvidenceBoard';
-import TerminalLog from '../src/components/game/TerminalLog';
-import ClueCard from '../src/components/game/ClueCard';
-import StatBar from '../src/components/game/StatBar';
-import JudgeModal from '../src/components/game/JudgeModal';
-import BranchModal from '../src/components/game/BranchModal';
+import { useReActEngine } from '@/hooks/useReActEngine';
+import { LocalStorage } from '@/game/gameState';
+import { Case_Data_Lvl_01, Phase_Color_Map } from '@/game/caseData';
+import GlitchOverlay from '@/components/game/GlitchOverlay';
+import BSoD from '@/components/game/BSoD';
+import EvidenceBoard from '@/components/game/EvidenceBoard';
+import TerminalLog from '@/components/game/TerminalLog';
+import ClueCard from '@/components/game/ClueCard';
+import StatBar from '@/components/game/StatBar';
+import JudgeModal from '@/components/game/JudgeModal';
+import BranchModal from '@/components/game/BranchModal';
 
 export default function Game() {
   const [agentStrategy] = useState(() => LocalStorage.loadStrategy());
