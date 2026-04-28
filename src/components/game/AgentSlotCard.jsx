@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AgentSkillPanel from '@/components/game/AgentSkillPanel';
+import PotentialPreview from '@/components/game/PotentialPreview';
 
 const AGENT_COLORS = ['#00e5ff', '#ff6b6b', '#a78bfa'];
 const AGENT_BG     = ['rgba(0,229,255,0.08)', 'rgba(255,107,107,0.08)', 'rgba(167,139,250,0.08)'];
@@ -38,6 +39,7 @@ function NeonSlider({ label, icon, desc, value, color, onChange, max }) {
 }
 
 export default function AgentSlotCard({ agent, idx, isActive, totalPool, onUpdate, onClick, xp }) {
+  const [showPotential, setShowPotential] = useState(false);
   const color = AGENT_COLORS[idx];
   const icons = ['👁️', '🔥', '💻'];
   const roles = ['观察型 · OBSERVER', '审讯型 · ENFORCER', '黑客型 · PHANTOM'];
@@ -139,6 +141,47 @@ export default function AgentSlotCard({ agent, idx, isActive, totalPool, onUpdat
 
       {/* ── Skill / Level Panel ── */}
       <AgentSkillPanel agentIdx={idx} xp={xp || 0} color={color} />
+
+      {/* ── Potential Preview Toggle ── */}
+      <div style={{ marginTop: 8 }} onClick={e => e.stopPropagation()}>
+        <button
+          onClick={() => setShowPotential(v => !v)}
+          className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl transition-all"
+          style={{
+            background: showPotential ? `${color}15` : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${showPotential ? color + '50' : 'rgba(255,255,255,0.07)'}`,
+          }}
+        >
+          <span style={{ fontSize: '0.6rem', fontFamily: 'monospace', color: showPotential ? color : 'rgba(255,255,255,0.4)', fontWeight: 700, letterSpacing: '0.06em' }}>
+            ◈ 养成潜能预览
+          </span>
+          {/* Toggle pill */}
+          <div style={{
+            width: 28, height: 14, borderRadius: 7,
+            background: showPotential ? color : 'rgba(255,255,255,0.12)',
+            position: 'relative',
+            transition: 'background 0.2s',
+            flexShrink: 0,
+            boxShadow: showPotential ? `0 0 8px ${color}80` : 'none',
+          }}>
+            <div style={{
+              width: 10, height: 10, borderRadius: '50%', background: '#fff',
+              position: 'absolute', top: 2,
+              left: showPotential ? 16 : 2,
+              transition: 'left 0.2s',
+            }} />
+          </div>
+        </button>
+
+        {showPotential && (
+          <PotentialPreview
+            agent={agent}
+            agentIdx={idx}
+            xp={xp || 0}
+            color={color}
+          />
+        )}
+      </div>
     </div>
   );
 }
