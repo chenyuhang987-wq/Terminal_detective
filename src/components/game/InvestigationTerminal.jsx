@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReAct_Enum, Legal_Actions_List, Phase_Color_Map, Case_Data_Lvl_01 } from '@/game/caseData';
+import { useLang } from '@/lib/lang.jsx';
 import MiniMap from '@/components/game/MiniMap';
 import { createInitialGameState, generateObservation, applySettlementResult, LocalStorage, pushCheckpoint, popCheckpoint, checkConflictClues } from '@/game/gameState';
 import { streamThinkSSE, getAction, settleAction, getNPCDialogue, judgeReport, branchCheck, parseActionTag } from '@/game/llmClient';
@@ -16,8 +17,30 @@ import GameOverScreen from '@/components/game/GameOverScreen';
 const PHASE_COLORS = Phase_Color_Map;
 
 export default function InvestigationTerminal({ agentStrategy, selectedCase, onGameEnd, onBackToLobby }) {
+  const { lang, t } = useLang();
   const caseDataResolved = selectedCase || Case_Data_Lvl_01;
+
+  // Resolve localised case data
+  const locCase = (c) => {
+    if (lang === 'en' && c.en) {
+      return {
+        ...c,
+        title: c.en.title || c.title,
+        subtitle: c.en.subtitle || c.subtitle,
+        setting: c.en.setting || c.setting,
+        scene: c.en.scene || c.scene,
+        clue_dictionary: c.en.clue_dictionary || c.clue_dictionary,
+        npcs: c.en.npcs || c.npcs,
+        hidden_clues: c.en.hidden_clues || c.hidden_clues,
+        branches: c.en.branches || c.branches,
+        truth_summary: c.en.truth_summary || c.truth_summary,
+        zone_layout: c.en.zone_layout || c.zone_layout,
+      };
+    }
+    return c;
+  };
   const [gameState, setGameState] = useState(() => createInitialGameState(caseDataResolved));
+  const caseData = locCase(caseDataResolved);
   const [reactState, setReactState] = useState(ReAct_Enum.IDLE);
   const [terminalLines, setTerminalLines] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -55,7 +78,6 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
 
-  const caseData = caseDataResolved;
   const phaseColor = PHASE_COLORS[reactState] || PHASE_COLORS.IDLE;
 
   const scrollToBottom = useCallback(() => {
@@ -424,24 +446,24 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
         style={{ borderColor: `${accentColor}30`, backgroundColor: 'rgba(0,0,0,0.6)' }}>
         <div className="flex items-center gap-4">
           <button onClick={onBackToLobby} className="text-xs opacity-40 hover:opacity-80 transition-opacity"
-            style={{ color: accentColor }}>← LOBBY</button>
+            style={{ color: accentColor }}>{t.lobbyBtn}</button>
           <div className="text-xs font-bold tracking-widest" style={{ color: accentColor, textShadow: `0 0 10px ${accentColor}` }}>
             {caseData.title} · {caseData.subtitle}
           </div>
         </div>
         <div className="flex items-center gap-6 text-xs">
           {[
-            { label: 'PHASE', val: phaseColor.label },
-            { label: 'HP', val: `${gameState.current_hp}%` },
-            { label: 'AP', val: `${gameState.action_points_left}/20` },
-            { label: 'CLUES', val: `${gameState.unlocked_clues.length}/${caseData.clue_dictionary.length}` },
-            { label: 'CONFUSION', val: `${gameState.confusion_score}%` },
+            { label: t.hudPhase, val: phaseColor.label },
+            { label: t.hudHp, val: `${gameState.current_hp}%` },
+            { label: t.hudAp, val: `${gameState.action_points_left}/20` },
+            { label: t.hudClues, val: `${gameState.unlocked_clues.length}/${caseData.clue_dictionary.length}` },
+            { label: t.hudConfusion, val: `${gameState.confusion_score}%` },
           ].map(s => (
             <div key={s.label} className="text-center">
               <div className="opacity-40" style={{ color: accentColor }}>{s.label}</div>
               <div className="font-bold" style={{
-                color: s.label === 'CONFUSION' && gameState.confusion_score > 60 ? '#ff3860' :
-                  s.label === 'HP' && gameState.current_hp < 30 ? '#ff3860' : accentColor
+                color: (s.label === t.hudConfusion) && gameState.confusion_score > 60 ? '#ff3860' :
+                  (s.label === t.hudHp) && gameState.current_hp < 30 ? '#ff3860' : accentColor
               }}>{s.val}</div>
             </div>
           ))}
@@ -450,17 +472,17 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
           <button onClick={() => { setShowFlowMap(m => !m); setShowBoard(false); setShowDecisionLog(false); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: '#a78bfa50', color: '#a78bfa', backgroundColor: showFlowMap ? '#a78bfa20' : 'transparent' }}>
-            🗺 MAP
+            {t.btnMap}
           </button>
           <button onClick={() => { setShowBoard(b => !b); setShowDecisionLog(false); setShowFlowMap(false); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: `${accentColor}50`, color: accentColor, backgroundColor: showBoard ? `${accentColor}20` : 'transparent' }}>
-            🕸 BOARD
+            {t.btnBoard}
           </button>
           <button onClick={() => { setShowDecisionLog(d => !d); setShowBoard(false); setShowFlowMap(false); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: '#ffaa0050', color: '#ffaa00', backgroundColor: showDecisionLog ? '#ffaa0020' : 'transparent', position: 'relative' }}>
-            📓 LOG
+            {t.btnLog}
             {decisionLog.filter(e => e.isKeyDecision || e.isTrap).length > 0 && (
               <span style={{
                 position: 'absolute', top: -4, right: -4,
@@ -476,12 +498,12 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
           <button onClick={() => setReportMode(r => !r)}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: '#00ff8850', color: '#00ff88', backgroundColor: reportMode ? '#00ff8820' : 'transparent' }}>
-            📋 REPORT
+            {t.btnReport}
           </button>
           <button onClick={() => { setFinalJudgeResult(judgeResult); setShowGameOver(true); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: '#ff386050', color: '#ff3860', backgroundColor: 'transparent' }}>
-            ⏹ END
+            {t.btnEnd}
           </button>
         </div>
       </div>
@@ -539,11 +561,11 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
           {/* Report Mode */}
           {reportMode && (
             <div className="p-4 border-t" style={{ borderColor: '#00ff8830' }}>
-              <div className="text-xs mb-2" style={{ color: '#00ff88' }}>◈ CASE REPORT — Submit your reasoning to the Judge:</div>
+              <div className="text-xs mb-2" style={{ color: '#00ff88' }}>{t.reportTitle}</div>
               <textarea
                 className="w-full bg-transparent border rounded p-3 text-xs outline-none resize-none"
                 style={{ borderColor: '#00ff8850', color: '#00ff88', height: 100 }}
-                placeholder="State your conclusion: Who did it? How? Why? What evidence supports your case?"
+                placeholder={t.reportPlaceholder}
                 value={reportText}
                 onChange={e => setReportText(e.target.value)}
                 disabled={isProcessing}
@@ -552,12 +574,12 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
                 <button onClick={handleSubmitReport} disabled={isProcessing}
                   className="flex-1 py-2 text-xs rounded border transition-all"
                   style={{ borderColor: '#00ff88', color: '#00ff88', backgroundColor: '#00ff8815' }}>
-                  ▶ SUBMIT TO JUDGE
+                  {t.reportSubmit}
                 </button>
                 <button onClick={() => setReportMode(false)}
                   className="px-4 py-2 text-xs rounded border opacity-50 hover:opacity-80"
                   style={{ borderColor: '#ffffff30', color: '#fff' }}>
-                  CANCEL
+                  {t.reportCancel}
                 </button>
               </div>
               {judgeResult && <JudgeResult result={judgeResult} />}
@@ -575,13 +597,13 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
                 boxShadow: `0 0 15px ${accentColor}30`,
                 textShadow: `0 0 8px ${accentColor}`,
               }}>
-              ▶ EXECUTE CYCLE
+              {t.executeCycle}
             </button>
             {isProcessing && (
               <button onClick={handleAbort}
                 className="px-4 py-2 text-xs rounded border transition-all"
                 style={{ borderColor: '#ff386060', color: '#ff3860', backgroundColor: '#ff386015' }}>
-                ⬛ ABORT
+                {t.abortBtn}
               </button>
             )}
             <div className="flex gap-2 flex-wrap">
@@ -614,7 +636,7 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
             <DecisionLog entries={decisionLog} accentColor={accentColor} />
           ) : showBoard ? (
             <div className="flex-1 p-2">
-              <div className="text-xs mb-2 tracking-widest text-center" style={{ color: accentColor }}>EVIDENCE BOARD</div>
+              <div className="text-xs mb-2 tracking-widest text-center" style={{ color: accentColor }}>{t.btnBoard}</div>
               <div style={{ height: 'calc(100% - 30px)' }}>
                 <EvidenceBoard
                   clues={caseData.clue_dictionary}
@@ -627,11 +649,11 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
           ) : (
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               <div className="text-xs tracking-widest mb-3" style={{ color: accentColor }}>
-                ◈ EVIDENCE LOCKER ({gameState.unlocked_clues.length})
+                {t.evidenceLocker} ({gameState.unlocked_clues.length})
               </div>
               {gameState.unlocked_clues.length === 0 ? (
                 <div className="text-xs opacity-30 text-center mt-8" style={{ color: accentColor }}>
-                  No evidence secured.<br />Begin investigation.
+                  {t.noEvidence}
                 </div>
               ) : (
                 gameState.unlocked_clues.map(id => {
@@ -645,7 +667,7 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
           {/* Confusion Meter */}
           <div className="p-3 border-t" style={{ borderColor: `${accentColor}20` }}>
             <div className="flex justify-between text-xs mb-1">
-              <span style={{ color: accentColor }}>CONFUSION</span>
+              <span style={{ color: accentColor }}>{t.confusionLabel}</span>
               <span style={{ color: gameState.confusion_score > 60 ? '#ff3860' : accentColor }}>
                 {gameState.confusion_score}%
               </span>
@@ -695,6 +717,7 @@ function TerminalLine({ line, accentColor }) {
 }
 
 function NPCDialogBox({ npc, dialogue, onSend, onClose, isProcessing, accentColor }) {
+  const { t } = useLang();
   const [msg, setMsg] = useState('');
   const ref = useRef(null);
   useEffect(() => {
@@ -705,7 +728,7 @@ function NPCDialogBox({ npc, dialogue, onSend, onClose, isProcessing, accentColo
     <div className="border-t p-3" style={{ borderColor: `${accentColor}30`, backgroundColor: 'rgba(0,0,0,0.6)' }}>
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs font-bold" style={{ color: accentColor }}>
-          {npc.avatar} INTERROGATING: {npc.name} · {npc.role}
+          {npc.avatar} {t.interrogating}: {npc.name} · {npc.role}
         </div>
         <button onClick={onClose} className="text-xs opacity-40 hover:opacity-80" style={{ color: accentColor }}>✕</button>
       </div>
@@ -723,7 +746,7 @@ function NPCDialogBox({ npc, dialogue, onSend, onClose, isProcessing, accentColo
         <input
           className="flex-1 bg-transparent border rounded px-2 py-1 text-xs outline-none"
           style={{ borderColor: `${accentColor}40`, color: accentColor }}
-          placeholder={`Interrogate ${npc.name}...`}
+          placeholder={`${t.interrogating}: ${npc.name}...`}
           value={msg}
           onChange={e => setMsg(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !isProcessing) { onSend(msg); setMsg(''); } }}
@@ -732,7 +755,7 @@ function NPCDialogBox({ npc, dialogue, onSend, onClose, isProcessing, accentColo
         <button onClick={() => { onSend(msg); setMsg(''); }} disabled={isProcessing || !msg.trim()}
           className="px-3 text-xs rounded border disabled:opacity-30"
           style={{ borderColor: `${accentColor}50`, color: accentColor }}>
-          SEND
+          {t.sendBtn}
         </button>
       </div>
     </div>

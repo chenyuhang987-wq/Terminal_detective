@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ALL_CASES } from '@/game/caseData';
+import { useLang } from '@/lib/lang.jsx';
 
 const DIFFICULTY_CONFIG = {
   NORMAL: { label: 'NORMAL', color: '#00ff88', bg: 'rgba(0,255,136,0.1)', stars: 1 },
@@ -10,6 +11,7 @@ const DIFFICULTY_CONFIG = {
 const CASE_COVER_ICONS = ['🏙️', '🔬', '🦋'];
 
 export default function CaseSelect({ onSelect, onBack }) {
+  const { lang, t } = useLang();
   const [hovered, setHovered] = useState(null);
   const [selected, setSelected] = useState(null);
 
@@ -17,6 +19,9 @@ export default function CaseSelect({ onSelect, onBack }) {
     setSelected(caseData.case_id);
     setTimeout(() => onSelect(caseData), 400);
   };
+
+  // Get localised fields for a case
+  const loc = (c, field) => (lang === 'en' && c.en && c.en[field] !== undefined) ? c.en[field] : c[field];
 
   return (
     <div
@@ -33,13 +38,13 @@ export default function CaseSelect({ onSelect, onBack }) {
         className="absolute top-6 left-6 text-xs opacity-40 hover:opacity-80 transition-opacity"
         style={{ color: '#00e5ff', fontFamily: 'monospace' }}
       >
-        ← 返回大厅
+        {t.backToLobby}
       </button>
 
       {/* Header */}
       <div className="text-center mb-10">
         <div style={{ fontSize: '0.6rem', letterSpacing: '0.5em', color: 'rgba(0,229,255,0.5)', marginBottom: 8 }}>
-          SELECT INVESTIGATION
+          {t.selectInvestigation}
         </div>
         <div style={{
           fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
@@ -48,11 +53,11 @@ export default function CaseSelect({ onSelect, onBack }) {
           color: '#fff',
           textShadow: '0 0 30px rgba(0,229,255,0.4)',
         }}>
-          案件档案库
+          {t.caseArchiveTitle}
         </div>
         <div style={{ height: 2, margin: '10px auto', width: 160, background: 'linear-gradient(to right, transparent, #00e5ff, transparent)', borderRadius: 2 }} />
         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em' }}>
-          选择一个案件开始调查
+          {t.caseArchiveSubtitle}
         </div>
       </div>
 
@@ -62,6 +67,9 @@ export default function CaseSelect({ onSelect, onBack }) {
           const diff = DIFFICULTY_CONFIG[c.difficulty] || DIFFICULTY_CONFIG.NORMAL;
           const isHover = hovered === c.case_id;
           const isSel   = selected === c.case_id;
+          const title   = loc(c, 'title');
+          const subtitle = loc(c, 'subtitle');
+          const setting = loc(c, 'setting');
 
           return (
             <div
@@ -86,7 +94,6 @@ export default function CaseSelect({ onSelect, onBack }) {
                 overflow: 'hidden',
               }}
             >
-              {/* Scan line effect on hover */}
               {isHover && (
                 <div style={{
                   position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -95,12 +102,10 @@ export default function CaseSelect({ onSelect, onBack }) {
                 }} />
               )}
 
-              {/* Case number */}
               <div style={{ fontSize: '0.55rem', color: `${diff.color}60`, letterSpacing: '0.3em', marginBottom: 12 }}>
                 CASE · {String(i + 1).padStart(2, '0')}
               </div>
 
-              {/* Cover icon */}
               <div style={{
                 fontSize: 48, textAlign: 'center', marginBottom: 16,
                 filter: isHover ? `drop-shadow(0 0 16px ${diff.color})` : 'none',
@@ -109,7 +114,6 @@ export default function CaseSelect({ onSelect, onBack }) {
                 {CASE_COVER_ICONS[i]}
               </div>
 
-              {/* Title */}
               <div style={{
                 fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)',
                 fontWeight: 900,
@@ -119,13 +123,12 @@ export default function CaseSelect({ onSelect, onBack }) {
                 marginBottom: 4,
                 transition: 'color 0.3s',
               }}>
-                {c.title}
+                {title}
               </div>
               <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.2em', marginBottom: 12 }}>
-                {c.subtitle}
+                {subtitle}
               </div>
 
-              {/* Difficulty badge */}
               <div className="flex items-center gap-2 mb-3">
                 <div style={{
                   padding: '2px 10px', borderRadius: 6,
@@ -147,23 +150,20 @@ export default function CaseSelect({ onSelect, onBack }) {
                 </div>
               </div>
 
-              {/* Setting blurb */}
               <div style={{
                 fontSize: '0.62rem', color: 'rgba(200,220,255,0.5)',
                 lineHeight: 1.6, marginBottom: 16,
                 fontFamily: 'monospace',
               }}>
-                {c.setting}
+                {setting}
               </div>
 
-              {/* Stats row */}
               <div className="flex gap-3 mb-5" style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>
-                <span>🔍 {c.clue_dictionary.length} 线索</span>
-                <span>👤 {c.npcs.length} NPC</span>
-                <span>🗺️ {Object.keys(c.scene.zones).length} 区域</span>
+                <span>🔍 {c.clue_dictionary.length} {t.clueStat}</span>
+                <span>👤 {c.npcs.length} {t.npcStat}</span>
+                <span>🗺️ {Object.keys(c.scene.zones).length} {t.zoneStat}</span>
               </div>
 
-              {/* CTA */}
               <button
                 style={{
                   width: '100%', padding: '10px 0',
@@ -180,16 +180,15 @@ export default function CaseSelect({ onSelect, onBack }) {
                   boxShadow: isHover ? `0 0 20px ${diff.color}30` : 'none',
                 }}
               >
-                {isSel ? '▶ 正在载入...' : '▶ 开始调查'}
+                {isSel ? t.loadingCase : t.startCase}
               </button>
             </div>
           );
         })}
       </div>
 
-      {/* Footer note */}
       <div style={{ marginTop: 40, fontSize: '0.55rem', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.2em', textAlign: 'center' }}>
-        TERMINAL DETECTIVE · CASE ARCHIVE · 3 INVESTIGATIONS AVAILABLE
+        {t.caseArchiveFooter}
       </div>
     </div>
   );

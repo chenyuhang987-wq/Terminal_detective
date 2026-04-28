@@ -36,6 +36,14 @@ export const Phase_Color_Map = {
   CRASHED:    { bg: '#1a0000', accent: '#ff0000', label: 'SYSTEM FAILURE' },
 };
 
+// ─── Helper: get localised case data ─────────────────────────────────────────
+export function localizeCase(caseData, lang) {
+  if (lang === 'en' && caseData.en) {
+    return { ...caseData, ...caseData.en };
+  }
+  return caseData;
+}
+
 export const Case_Data_Lvl_01 = {
   case_id: "Lvl_01",
   title: "霓虹血迹",
@@ -59,173 +67,91 @@ Timeline: 23:05 - Victor entered data center. 23:12 - Mei followed using cloned 
 Key evidence: Bloody receipt showing Mei purchased capacitors at 22:41 (EMP components), Victor's encrypted files showing NovaCorp deal, Mei's sister's neural interface registration, maintenance shaft access log.`,
 
   clue_dictionary: [
-    {
-      clue_id: "c_01",
-      keyword: "染血收据",
-      description: "在数据端子下方发现，时间戳 23:05。显示在附近的电子元器件店购买了高压电容器。",
-      visual_icon: "🧾",
-      weight: "CRITICAL"
-    },
-    {
-      clue_id: "c_02",
-      keyword: "EMP 烧痕",
-      description: "Victor 脖颈处的神经接口有明显的高压电磁脉冲灼伤，与普通枪击或钝器伤完全不同。",
-      visual_icon: "⚡",
-      weight: "CRITICAL"
-    },
-    {
-      clue_id: "c_03",
-      keyword: "克隆门禁卡",
-      description: "监控显示有人使用了与 Mei Lin 相同权限的门禁卡，但 Mei 声称她 23:00 后就离开了大楼。",
-      visual_icon: "💳",
-      weight: "HIGH"
-    },
-    {
-      clue_id: "c_04",
-      keyword: "NovaCorp 加密协议",
-      description: "Victor 的加密硬盘中发现了与竞争对手 NovaCorp 签署的秘密交易协议——出售神经接口技术。",
-      visual_icon: "📋",
-      weight: "HIGH"
-    },
-    {
-      clue_id: "c_05",
-      keyword: "维修管道记录",
-      description: "大楼维修管道的电子锁在 23:17 被激活，有人从内部进入，23:19 离开。这条管道直通案发楼层。",
-      visual_icon: "🔧",
-      weight: "MEDIUM"
-    },
-    {
-      clue_id: "c_06",
-      keyword: "Mei 的姐姐档案",
-      description: "医院记录：Mei Lin 的姐姐是 NovaCorp 神经接口实验的受害者，目前处于植物人状态。",
-      visual_icon: "🏥",
-      weight: "HIGH"
-    },
-    {
-      clue_id: "c_07",
-      keyword: "抹除的监控",
-      description: "案发时间段的所有摄像头数据均已损毁，符合 EMP 设备的干扰特征。",
-      visual_icon: "📷",
-      weight: "MEDIUM"
-    },
-    {
-      clue_id: "c_08",
-      keyword: "Kenji 不在场证明",
-      description: "保安 Kenji 的刷卡记录证实他全程在地下停车场值班，不可能在案发时间出现在47层。",
-      visual_icon: "🛡️",
-      weight: "LOW"
-    },
-    {
-      clue_id: "c_secret_99",
-      keyword: "匿名黑客情报",
-      description: "系统收到匿名加密信息：'Check maintenance shaft log at 23:17. She always hated him for what he did to her sister.'",
-      visual_icon: "🔐",
-      weight: "CRITICAL",
-      unlock_turn: 8
-    }
+    { clue_id: "c_01", keyword: "染血收据", description: "在数据端子下方发现，时间戳 23:05。显示在附近的电子元器件店购买了高压电容器。", visual_icon: "🧾", weight: "CRITICAL" },
+    { clue_id: "c_02", keyword: "EMP 烧痕", description: "Victor 脖颈处的神经接口有明显的高压电磁脉冲灼伤，与普通枪击或钝器伤完全不同。", visual_icon: "⚡", weight: "CRITICAL" },
+    { clue_id: "c_03", keyword: "克隆门禁卡", description: "监控显示有人使用了与 Mei Lin 相同权限的门禁卡，但 Mei 声称她 23:00 后就离开了大楼。", visual_icon: "💳", weight: "HIGH" },
+    { clue_id: "c_04", keyword: "NovaCorp 加密协议", description: "Victor 的加密硬盘中发现了与竞争对手 NovaCorp 签署的秘密交易协议——出售神经接口技术。", visual_icon: "📋", weight: "HIGH" },
+    { clue_id: "c_05", keyword: "维修管道记录", description: "大楼维修管道的电子锁在 23:17 被激活，有人从内部进入，23:19 离开。这条管道直通案发楼层。", visual_icon: "🔧", weight: "MEDIUM" },
+    { clue_id: "c_06", keyword: "Mei 的姐姐档案", description: "医院记录：Mei Lin 的姐姐是 NovaCorp 神经接口实验的受害者，目前处于植物人状态。", visual_icon: "🏥", weight: "HIGH" },
+    { clue_id: "c_07", keyword: "抹除的监控", description: "案发时间段的所有摄像头数据均已损毁，符合 EMP 设备的干扰特征。", visual_icon: "📷", weight: "MEDIUM" },
+    { clue_id: "c_08", keyword: "Kenji 不在场证明", description: "保安 Kenji 的刷卡记录证实他全程在地下停车场值班，不可能在案发时间出现在47层。", visual_icon: "🛡️", weight: "LOW" },
+    { clue_id: "c_secret_99", keyword: "匿名黑客情报", description: "系统收到匿名加密信息：'Check maintenance shaft log at 23:17. She always hated him for what he did to her sister.'", visual_icon: "🔐", weight: "CRITICAL", unlock_turn: 8 }
   ],
 
   npcs: [
-    {
-      npc_id: "npc_01",
-      name: "Mei Lin",
-      role: "Victor 的私人助理",
-      public_persona: "忠诚高效的助理，对 Victor 死亡表现悲痛",
-      hidden_motive: "她用 EMP 设备杀死了 Victor，为了阻止出卖技术、为姐姐复仇",
-      personality: "表面冷静克制，内心极度紧张，当证据出示时会崩溃",
-      avatar: "👩‍💼",
-      initial_statement: "我... 我不知道该说什么。Victor 死了，这太突然了。我昨晚 11 点前就离开了大楼，我发誓。"
-    },
-    {
-      npc_id: "npc_02",
-      name: "Kenji Mori",
-      role: "大楼保安",
-      public_persona: "尽职的保安，第一个发现尸体",
-      hidden_motive: "无罪，但他在黑市中有些灰色交易，怕被深查",
-      personality: "紧张、多汗、说话磕磕绊绊",
-      avatar: "🛡️",
-      initial_statement: "是我发现他的... 23 点 31 分。我去送例行报告，门是开的，然后就看到他倒在地板上了。"
-    },
-    {
-      npc_id: "npc_03",
-      name: "Dr. Voss",
-      role: "NovaCorp 研究员",
-      public_persona: "来拜访的商业伙伴",
-      hidden_motive: "他知道交易的内情，但选择沉默，他是共谋但没有直接参与谋杀",
-      personality: "傲慢、精于算计、擅长用法律术语回避问题",
-      avatar: "🔬",
-      initial_statement: "我与 Victor 博士有正当的商业往来。我的律师告诉我可以拒绝回答任何问题。"
-    }
+    { npc_id: "npc_01", name: "Mei Lin", role: "Victor 的私人助理", public_persona: "忠诚高效的助理，对 Victor 死亡表现悲痛", hidden_motive: "她用 EMP 设备杀死了 Victor，为了阻止出卖技术、为姐姐复仇", personality: "表面冷静克制，内心极度紧张，当证据出示时会崩溃", avatar: "👩‍💼", initial_statement: "我... 我不知道该说什么。Victor 死了，这太突然了。我昨晚 11 点前就离开了大楼，我发誓。" },
+    { npc_id: "npc_02", name: "Kenji Mori", role: "大楼保安", public_persona: "尽职的保安，第一个发现尸体", hidden_motive: "无罪，但他在黑市中有些灰色交易，怕被深查", personality: "紧张、多汗、说话磕磕绊绊", avatar: "🛡️", initial_statement: "是我发现他的... 23 点 31 分。我去送例行报告，门是开的，然后就看到他倒在地板上了。" },
+    { npc_id: "npc_03", name: "Dr. Voss", role: "NovaCorp 研究员", public_persona: "来拜访的商业伙伴", hidden_motive: "他知道交易的内情，但选择沉默，他是共谋但没有直接参与谋杀", personality: "傲慢、精于算计、擅长用法律术语回避问题", avatar: "🔬", initial_statement: "我与 Victor 博士有正当的商业往来。我的律师告诉我可以拒绝回答任何问题。" }
   ],
 
-  valid_edges: [
-    ["c_01", "c_02"],
-    ["c_02", "c_03"],
-    ["c_03", "c_05"],
-    ["c_04", "c_06"],
-    ["c_05", "c_07"],
-    ["c_06", "c_01"],
-    ["c_secret_99", "c_05"],
-    ["c_secret_99", "c_06"],
-  ],
-
-  conflict_dictionary: [
-    {
-      clue_A: "c_08",
-      clue_B: "c_03",
-      reason: "Kenji's alibi is verified, so the cloned card must belong to someone else."
-    }
-  ],
-
-  hidden_clues: [
-    {
-      clue_id: "c_secret_99",
-      unlock_turn: 8,
-      text: "系统警报：收到来自未知 IP 的加密数据包..."
-    }
-  ],
-
+  valid_edges: [["c_01","c_02"],["c_02","c_03"],["c_03","c_05"],["c_04","c_06"],["c_05","c_07"],["c_06","c_01"],["c_secret_99","c_05"],["c_secret_99","c_06"]],
+  conflict_dictionary: [{ clue_A: "c_08", clue_B: "c_03", reason: "Kenji's alibi is verified, so the cloned card must belong to someone else." }],
+  hidden_clues: [{ clue_id: "c_secret_99", unlock_turn: 8, text: "系统警报：收到来自未知 IP 的加密数据包..." }],
   checkpoints: ["zone_datacenter", "zone_lobby"],
-
   branches: {
-    "b_wrong_kenji": {
-      text: "你的探员鲁莽地指控了无辜的保安 Kenji！警方以妨碍公务为由拘押了探员，案件调查陷入死胡同。霓虹灯在雨中继续闪烁，而真凶悄然消失在城市的阴影中...",
-      visual_fx: "glitch-red",
-      impact: { ap_loss: 50 }
-    },
-    "b_wrong_voss": {
-      text: "探员将矛头指向了 Dr. Voss。虽然他是共谋，但缺乏直接证据。Voss 的律师团队迅速介入，在 72 小时内将其保释。真凶 Mei Lin 趁机逃离了城市。",
-      visual_fx: "glitch-orange",
-      impact: { ap_loss: 30 }
-    }
+    "b_wrong_kenji": { text: "你的探员鲁莽地指控了无辜的保安 Kenji！警方以妨碍公务为由拘押了探员，案件调查陷入死胡同。霓虹灯在雨中继续闪烁，而真凶悄然消失在城市的阴影中...", visual_fx: "glitch-red", impact: { ap_loss: 50 } },
+    "b_wrong_voss": { text: "探员将矛头指向了 Dr. Voss。虽然他是共谋，但缺乏直接证据。Voss 的律师团队迅速介入，在 72 小时内将其保释。真凶 Mei Lin 趁机逃离了城市。", visual_fx: "glitch-orange", impact: { ap_loss: 30 } }
   },
-
   branch_triggers: [
-    {
-      branch_id: "b_wrong_kenji",
-      condition_description: "玩家/探员指控了保安 Kenji 而没有充分证据"
-    },
-    {
-      branch_id: "b_wrong_voss",
-      condition_description: "玩家/探员只指控了 Voss 而忽视了 Mei Lin 的直接证据"
-    }
+    { branch_id: "b_wrong_kenji", condition_description: "玩家/探员指控了保安 Kenji 而没有充分证据" },
+    { branch_id: "b_wrong_voss", condition_description: "玩家/探员只指控了 Voss 而忽视了 Mei Lin 的直接证据" }
   ],
-  zone_clue_map: {
-    zone_datacenter: ['c_01','c_02','c_07'],
-    zone_lobby:      ['c_03','c_08'],
-    zone_lab:        ['c_04','c_05','c_secret_99'],
-    zone_balcony:    ['c_06'],
-  },
+  zone_clue_map: { zone_datacenter: ['c_01','c_02','c_07'], zone_lobby: ['c_03','c_08'], zone_lab: ['c_04','c_05','c_secret_99'], zone_balcony: ['c_06'] },
   zone_layout: {
     zone_datacenter: { x: 50, y: 18, label: '数据中心', sublabel: '案发现场', icon: '💻', color: '#ff3860' },
     zone_lobby:      { x: 20, y: 60, label: '大堂',     sublabel: '监控中心', icon: '📹', color: '#00e5ff' },
     zone_lab:        { x: 80, y: 60, label: '私人实验室', sublabel: '黑客入口', icon: '🔬', color: '#a78bfa' },
     zone_balcony:    { x: 50, y: 85, label: '天台阳台', sublabel: '逃离路线', icon: '🌃', color: '#ffaa00' },
   },
-  zone_connections: [
-    ['zone_datacenter','zone_lobby'],['zone_datacenter','zone_lab'],
-    ['zone_datacenter','zone_balcony'],['zone_lobby','zone_balcony'],['zone_lab','zone_balcony'],
-  ],
+  zone_connections: [['zone_datacenter','zone_lobby'],['zone_datacenter','zone_lab'],['zone_datacenter','zone_balcony'],['zone_lobby','zone_balcony'],['zone_lab','zone_balcony']],
+
+  // ── English localisation ──────────────────────────────────────────────────
+  en: {
+    title: "Neon Blood",
+    subtitle: "Case LVL-01",
+    setting: "2157. A luxury penthouse in the depths of a cyberpunk metropolis.",
+    scene: {
+      description: "Night rain washes over neon reflections. On the 47th floor, tech mogul Victor Zhao is found dead in his personal data center. Electromagnetic pulse burns scar the room. Encrypted chip fragments litter the floor. Security logs show three individuals entered within the hour before death.",
+      zones: {
+        zone_datacenter: { dom_id: "area-datacenter", label: "Data Center · Crime Scene", entry_requirement: null },
+        zone_lobby:      { dom_id: "area-lobby",      label: "Lobby · Surveillance Hub",  entry_requirement: "check_cctv" },
+        zone_lab:        { dom_id: "area-lab",         label: "Private Laboratory",        entry_requirement: "hack_terminal" },
+        zone_balcony:    { dom_id: "area-balcony",     label: "Roof Balcony",              entry_requirement: "action_open_glass_door" },
+      }
+    },
+    truth_summary: `Victor Zhao was murdered by his trusted assistant, Mei Lin. 
+Motive: Mei discovered Victor had been secretly selling experimental neural interface tech to rival corporation NovaCorp, which would destroy thousands of lives including her family (her sister is a test subject). 
+Method: Mei used a stolen Electromagnetic Pulse device (EMP-X7) to overload Victor's neural implants, causing fatal cardiac arrest. The EMP also wiped security footage. 
+Timeline: 23:05 - Victor entered data center. 23:12 - Mei followed using cloned access card. 23:17 - EMP discharged. 23:19 - Mei left via maintenance shaft. 23:31 - Body discovered by guard Kenji.
+Key evidence: Bloody receipt (Mei purchased capacitors at 22:41), Victor's encrypted NovaCorp deal files, Mei's sister's neural interface registration, maintenance shaft access log.`,
+    clue_dictionary: [
+      { clue_id: "c_01", keyword: "Bloody Receipt", description: "Found beneath the data terminal, timestamp 23:05. Shows purchase of high-voltage capacitors from a nearby electronics store.", visual_icon: "🧾", weight: "CRITICAL" },
+      { clue_id: "c_02", keyword: "EMP Burn Marks", description: "Victor's neural port at the neck shows high-voltage electromagnetic pulse burns — distinct from any blunt or ballistic wound.", visual_icon: "⚡", weight: "CRITICAL" },
+      { clue_id: "c_03", keyword: "Cloned Access Card", description: "Surveillance shows someone used an access card with identical permissions to Mei Lin's — but Mei claims she left the building before 23:00.", visual_icon: "💳", weight: "HIGH" },
+      { clue_id: "c_04", keyword: "NovaCorp Encrypted Contract", description: "Victor's encrypted drive contains a secret deal signed with rival NovaCorp — selling neural interface technology.", visual_icon: "📋", weight: "HIGH" },
+      { clue_id: "c_05", keyword: "Maintenance Shaft Log", description: "The maintenance shaft's electronic lock was triggered at 23:17. Someone entered from inside and left at 23:19. The shaft connects directly to the crime floor.", visual_icon: "🔧", weight: "MEDIUM" },
+      { clue_id: "c_06", keyword: "Mei's Sister File", description: "Hospital records: Mei Lin's sister is a victim of NovaCorp's neural interface experiments, currently in a vegetative state.", visual_icon: "🏥", weight: "HIGH" },
+      { clue_id: "c_07", keyword: "Wiped Surveillance", description: "All camera footage during the incident window was destroyed — consistent with EMP interference signatures.", visual_icon: "📷", weight: "MEDIUM" },
+      { clue_id: "c_08", keyword: "Kenji's Alibi", description: "Security guard Kenji's card log confirms he was on duty in the underground parking lot throughout — impossible to be on the 47th floor.", visual_icon: "🛡️", weight: "LOW" },
+      { clue_id: "c_secret_99", keyword: "Anonymous Hacker Intel", description: "System received an anonymous encrypted message: 'Check maintenance shaft log at 23:17. She always hated him for what he did to her sister.'", visual_icon: "🔐", weight: "CRITICAL", unlock_turn: 8 }
+    ],
+    npcs: [
+      { npc_id: "npc_01", name: "Mei Lin", role: "Victor's Personal Assistant", public_persona: "Loyal, efficient assistant — appears devastated by Victor's death", hidden_motive: "She killed Victor using an EMP device to stop the tech sale and avenge her sister", personality: "Outwardly composed, inwardly terrified — breaks down when confronted with evidence", avatar: "👩‍💼", initial_statement: "I... I don't know what to say. Victor is gone — it's so sudden. I left the building before 11 PM last night. I swear." },
+      { npc_id: "npc_02", name: "Kenji Mori", role: "Building Security Guard", public_persona: "Diligent guard, first to discover the body", hidden_motive: "Innocent of the murder, but involved in grey-market dealings — fears a deep investigation", personality: "Nervous, sweating, stumbles over his words", avatar: "🛡️", initial_statement: "I found him... at 23:31. I was delivering a routine report, the door was open, and there he was on the floor." },
+      { npc_id: "npc_03", name: "Dr. Voss", role: "NovaCorp Researcher", public_persona: "A visiting business partner", hidden_motive: "Knows the details of the deal but stays silent — complicit but not directly involved in the murder", personality: "Arrogant, calculating — deflects with legal jargon", avatar: "🔬", initial_statement: "Dr. Victor and I had legitimate business dealings. My attorney advises me I may decline to answer any questions." }
+    ],
+    hidden_clues: [{ clue_id: "c_secret_99", unlock_turn: 8, text: "SYSTEM ALERT: Encrypted packet received from unknown IP..." }],
+    branches: {
+      "b_wrong_kenji": { text: "Your agent rashly accused the innocent guard Kenji. Police detained the agent on obstruction charges — the investigation has hit a dead end. Neon lights flicker in the rain as the real killer slips away into the city's shadows...", visual_fx: "glitch-red", impact: { ap_loss: 50 } },
+      "b_wrong_voss": { text: "The agent targeted Dr. Voss. While complicit, there was insufficient direct evidence. Voss's legal team intervened within 72 hours and secured his release. The real killer, Mei Lin, fled the city.", visual_fx: "glitch-orange", impact: { ap_loss: 30 } }
+    },
+    zone_layout: {
+      zone_datacenter: { x: 50, y: 18, label: 'Data Center',  sublabel: 'Crime Scene',   icon: '💻', color: '#ff3860' },
+      zone_lobby:      { x: 20, y: 60, label: 'Lobby',        sublabel: 'Surveillance',   icon: '📹', color: '#00e5ff' },
+      zone_lab:        { x: 80, y: 60, label: 'Private Lab',   sublabel: 'Hack Entry',    icon: '🔬', color: '#a78bfa' },
+      zone_balcony:    { x: 50, y: 85, label: 'Roof Balcony', sublabel: 'Escape Route',   icon: '🌃', color: '#ffaa00' },
+    },
+  },
 };
 
 // ─── Case 2: 幽灵协议 ─────────────────────────────────────────────────────────
@@ -273,7 +199,6 @@ export const Case_Data_Lvl_02 = {
     { branch_id: "b_blame_zoe", condition_description: "探员将最终报告指向了实验室助理 Zoe Park" },
     { branch_id: "b_blame_otto", condition_description: "探员将最终报告指向了保安 Otto 而忽视 Harlan 的证据" }
   ],
-  // Zone-clue mapping for minimap
   zone_clue_map: { zone_lab_core: ['d_01','d_02','d_03','d_07'], zone_server: ['d_04','d_secret_99'], zone_lounge: ['d_05'], zone_roof_exit: ['d_06'] },
   zone_layout: {
     zone_lab_core:  { x: 50, y: 18, label: '量子核心实验室', sublabel: '案发现场', icon: '⚛️',  color: '#ff3860' },
@@ -282,6 +207,50 @@ export const Case_Data_Lvl_02 = {
     zone_roof_exit: { x: 50, y: 85, label: '紧急逃生通道',    sublabel: '逃跑路线', icon: '🚪', color: '#ffaa00' },
   },
   zone_connections: [['zone_lab_core','zone_server'],['zone_lab_core','zone_lounge'],['zone_lab_core','zone_roof_exit'],['zone_lounge','zone_roof_exit'],['zone_server','zone_roof_exit']],
+
+  // ── English localisation ──────────────────────────────────────────────────
+  en: {
+    title: "Ghost Protocol",
+    subtitle: "Case LVL-02",
+    setting: "2159. A top-secret private quantum research institute. A scientist has vanished from a sealed lab, leaving burning data and a locked room.",
+    scene: {
+      description: "The quantum lab's fire door is locked from the inside. Dr. Aria Chen's badge still hangs by the entrance — but she is nowhere to be found. Only burned quantum chips and a deleted experiment log remain. All external cameras went offline at the same moment.",
+      zones: {
+        zone_lab_core:   { dom_id: "area-lab-core",   label: "Quantum Core Lab",    entry_requirement: null },
+        zone_server:     { dom_id: "area-server",     label: "Data Server Room",    entry_requirement: "hack_terminal" },
+        zone_lounge:     { dom_id: "area-lounge",     label: "Staff Lounge",        entry_requirement: null },
+        zone_roof_exit:  { dom_id: "area-roof-exit",  label: "Emergency Exit Shaft", entry_requirement: "search_area" },
+      }
+    },
+    truth_summary: `Dr. Aria Chen was not murdered — she faked her own disappearance. She had discovered that the institute's director, Dr. Harlan, was secretly selling quantum encryption keys to a foreign syndicate. Fearing she would be silenced, she staged her disappearance using a quantum phase-shift prototype to briefly render herself undetectable, then escaped through the emergency shaft. The burned chips were decoys she planted. Key evidence: her secret backup drive hidden in the lounge, server logs of Harlan's unauthorized access, and the roof exit weight sensor log showing someone left at 02:34.`,
+    clue_dictionary: [
+      { clue_id: "d_01", keyword: "Burned Chips", description: "Seven quantum chips found deliberately ignited on the lab bench. The destruction pattern is too uniform — this was intentional.", visual_icon: "🔥", weight: "HIGH" },
+      { clue_id: "d_02", keyword: "Aria's Badge", description: "Badge scan records show she entered the core lab at 02:18 and never scanned out. But the door was locked from inside — impossible to operate from outside.", visual_icon: "🪪", weight: "CRITICAL" },
+      { clue_id: "d_03", keyword: "Phase-Shift Prototype", description: "Lab inventory shows a 'QPS-α Phase Shift Device' was signed out by Aria the night before the incident. Now returned — but the energy core is fully depleted.", visual_icon: "🌀", weight: "CRITICAL" },
+      { clue_id: "d_04", keyword: "Harlan's Server Log", description: "At 01:55 AM, Director Dr. Harlan used admin credentials to access the quantum key vault and downloaded the full encryption protocol archive.", visual_icon: "💾", weight: "HIGH" },
+      { clue_id: "d_05", keyword: "Hidden Backup Drive", description: "Found in a concealed compartment in the lounge fridge, disguised as a drink can. Contains all of Aria's compiled evidence against Harlan.", visual_icon: "🥤", weight: "CRITICAL" },
+      { clue_id: "d_06", keyword: "Roof Weight Sensor", description: "The pressure sensor at the emergency shaft's roof exit recorded adult-weight pressure at 02:34, then immediately dropped to zero.", visual_icon: "📊", weight: "HIGH" },
+      { clue_id: "d_07", keyword: "Synchronized Outage", description: "All external cameras powered off simultaneously at 02:17, linked to the lab's internal power controller — an inside job.", visual_icon: "📷", weight: "MEDIUM" },
+      { clue_id: "d_08", keyword: "Harlan's Call Log", description: "Harlan made an encrypted call at 23:40 on the night of the incident — 18 minutes long. The receiving IP traces to an overseas location.", visual_icon: "📞", weight: "HIGH" },
+      { clue_id: "d_secret_99", keyword: "Aria's Hidden Message", description: "Recovered from server trash (not fully overwritten): 'If you find this, I'm safe. The real criminal is Harlan. Check the lounge fridge.'", visual_icon: "📨", weight: "CRITICAL", unlock_turn: 7 }
+    ],
+    npcs: [
+      { npc_id: "npc_01", name: "Dr. Harlan", role: "Institute Director", public_persona: "Concerned leader, claims to be doing everything to find Aria", hidden_motive: "Secretly selling quantum keys — fears Aria's evidence will destroy him", personality: "Authoritative, skilled at deflecting with bureaucratic language — cites 'due process' when pressed", avatar: "🧑‍🔬", initial_statement: "This is unbelievable. Aria was my finest researcher. We are cooperating fully with the investigation. Trust that this institution will provide answers." },
+      { npc_id: "npc_02", name: "Zoe Park", role: "Lab Assistant", public_persona: "Shocked and grieving, was close to Aria", hidden_motive: "Knows Aria had a secret plan but chose silence — fears being implicated", personality: "Emotional, prone to revealing details under pressure but quickly regrets it and backtracks", avatar: "👩‍🔬", initial_statement: "Aria... she's been so tense lately. I'd sometimes catch her staring in the direction of Harlan's office, with this strange look in her eyes." },
+      { npc_id: "npc_03", name: "Otto", role: "Night Security Guard", public_persona: "Ordinary, dutiful guard on duty that night", hidden_motive: "Harlan bribed him to leave his post from 02:15 to 02:40 — he doesn't know Harlan's real purpose", personality: "Simple, mildly guilty — contradictions surface under questioning", avatar: "💂", initial_statement: "That night I... I went to the bathroom. Maybe ten or fifteen minutes? Everything was normal when I got back." }
+    ],
+    hidden_clues: [{ clue_id: "d_secret_99", unlock_turn: 7, text: "SYSTEM DETECTED: Unfully-overwritten residual data in the server trash bin..." }],
+    branches: {
+      "b_blame_zoe": { text: "The agent accused Zoe Park — a catastrophic error. The real culprit, Harlan, used the diversion to destroy all evidence. The quantum key exchange was completed.", visual_fx: "glitch-orange", impact: { ap_loss: 35 } },
+      "b_blame_otto": { text: "The agent zeroed in on guard Otto. Though he did accept a bribe, that was peripheral. Harlan completed the key sale during interrogation. The case spiraled out of control.", visual_fx: "glitch-red", impact: { ap_loss: 40 } }
+    },
+    zone_layout: {
+      zone_lab_core:  { x: 50, y: 18, label: 'Quantum Core Lab', sublabel: 'Crime Scene',  icon: '⚛️',  color: '#ff3860' },
+      zone_server:    { x: 80, y: 55, label: 'Server Room',       sublabel: 'Digital Entry', icon: '💾',  color: '#a78bfa' },
+      zone_lounge:    { x: 20, y: 55, label: 'Staff Lounge',      sublabel: 'Hidden Evidence', icon: '☕', color: '#00e5ff' },
+      zone_roof_exit: { x: 50, y: 85, label: 'Emergency Exit',    sublabel: 'Escape Route',  icon: '🚪', color: '#ffaa00' },
+    },
+  },
 };
 
 // ─── Case 3: 红蝶陷阱 ─────────────────────────────────────────────────────────
@@ -333,6 +302,49 @@ export const Case_Data_Lvl_03 = {
     zone_alley:    { x: 50, y: 85, label: '后巷收货区',     sublabel: '走私窝点', icon: '📦', color: '#ffaa00' },
   },
   zone_connections: [['zone_booth3','zone_bar'],['zone_booth3','zone_backroom'],['zone_booth3','zone_alley'],['zone_bar','zone_alley'],['zone_backroom','zone_alley']],
+
+  // ── English localisation ──────────────────────────────────────────────────
+  en: {
+    title: "Red Butterfly",
+    subtitle: "Case LVL-03",
+    setting: "2155. An illegal neural entertainment club 'The Nest' in Sector 9 of the Underground District. A regular patron is found dead in a private neural immersion pod, cause of death: suspected neural overload.",
+    scene: {
+      description: "The neural pod section of 'The Nest' is dimly lit, reeking of alcohol and machine oil. Victim Riku Tanaka is found still seated in Pod 3 — brainwave output shows a fatal neural overload. But this device has a safety lock. Someone bypassed it.",
+      zones: {
+        zone_booth3:  { dom_id: "area-booth3",  label: "Pod 3 · Neural Booth", entry_requirement: null },
+        zone_bar:     { dom_id: "area-bar",     label: "Bar · Mixing Counter", entry_requirement: null },
+        zone_backroom:{ dom_id: "area-backroom",label: "Backroom Control Room", entry_requirement: "hack_terminal" },
+        zone_alley:   { dom_id: "area-alley",   label: "Back Alley · Receiving", entry_requirement: "tail_suspect" },
+      }
+    },
+    truth_summary: `Riku was killed by the club's head bartender, Sable. Riku had been blackmailing Sable with evidence of her smuggling modified neural chips. Sable used her access to the backroom control system to override the safety lock on Booth 3 and push a custom "overload sequence" while Riku was connected. The death appeared accidental. Key evidence: Sable's access log to the control room at 01:20, a custom overload script recovered from a wiped tablet, Riku's blackmail messages in his implant cache, and witness Lena (coat-check girl) who saw Sable enter the backroom at 01:20.`,
+    clue_dictionary: [
+      { clue_id: "e_01", keyword: "Overloaded Neural Pod", description: "Pod 3's overload trace shows peak power 4.7× the safety limit. The safety lock was bypassed at the software level — not a hardware failure.", visual_icon: "🧠", weight: "CRITICAL" },
+      { clue_id: "e_02", keyword: "Riku's Blackmail Messages", description: "Six encrypted messages extracted from Riku's neural implant cache — demanding 50,000 credits/month from 'S' in exchange for silence.", visual_icon: "💬", weight: "CRITICAL" },
+      { clue_id: "e_03", keyword: "Sable's Access Log", description: "The backroom control room's door log shows Sable entered at 01:20 and left at 01:26 — perfectly overlapping the window of Riku's death.", visual_icon: "🔑", weight: "CRITICAL" },
+      { clue_id: "e_04", keyword: "Wiped Tablet", description: "A factory-reset tablet found in the control room. Data recovery reveals code fragments — a custom overload script targeting Pod 3's safety lock.", visual_icon: "📱", weight: "HIGH" },
+      { clue_id: "e_05", keyword: "Lena's Testimony", description: "Coat-check girl Lena says she saw Sable 'rush a little nervously' past the bar toward the back door at around 01:20.", visual_icon: "👁️", weight: "HIGH" },
+      { clue_id: "e_06", keyword: "Modified Neural Chips", description: "A hidden crate in the back alley yielded 12 modified neural chips — model numbers don't match Sable's supplier invoices. Illegal contraband.", visual_icon: "💿", weight: "HIGH" },
+      { clue_id: "e_07", keyword: "Bar Chemical Analysis", description: "Residue in Riku's glass shows a heavy neural suppressant dose — lowering his defensive response to overload signals. In combination: lethal.", visual_icon: "🍸", weight: "MEDIUM" },
+      { clue_id: "e_08", keyword: "Club Owner Ren's Statement", description: "Owner Ren claims he was in the VIP lounge with clients when the incident occurred. Five guests can vouch for him. No direct connection to the case.", visual_icon: "🤵", weight: "LOW" },
+      { clue_id: "e_secret_99", keyword: "Sable's Smuggling Ledger", description: "Decrypted from a hidden compartment in the alley crate: a handwritten ledger of Sable's three-year illegal chip trade, with Riku's name annotated 'Threat Eliminated'.", visual_icon: "📒", weight: "CRITICAL", unlock_turn: 6 }
+    ],
+    npcs: [
+      { npc_id: "npc_01", name: "Sable", role: "Head Bartender", public_persona: "Calm and professional — expresses regret about Riku's death, claims she was busy at the bar all evening", hidden_motive: "She bypassed the safety lock to kill Riku, eliminating the one person who knew her smuggling operation", personality: "Ice-cold, almost no emotional fluctuation — brief pauses when pressed on the specific timeline", avatar: "🦋", initial_statement: "Riku was a regular here. It was a busy night — I was at the bar the whole time. Such a tragedy." },
+      { npc_id: "npc_02", name: "Lena", role: "Coat-Check Attendant", public_persona: "Timid and kind, a witness willing to cooperate", hidden_motive: "No malicious intent, but fears Sable's retaliation — tells partial truths", personality: "Voice trembles, opens up once comforted — needs pressure to tell the full story", avatar: "🌸", initial_statement: "I... I'm not sure what I saw. Can you protect me? The people here aren't to be messed with." },
+      { npc_id: "npc_03", name: "Ren", role: "Club Owner", public_persona: "Sharp businessman, eager to distance the club from the incident", hidden_motive: "Knew Sable was smuggling and took a cut — but didn't know she would kill", personality: "Highly defensive — threatens with money and lawyers, but will throw Sable under the bus when cornered", avatar: "🎭", initial_statement: "It was an accident. Equipment malfunction. All our gear is certified compliant. My lawyers will handle everything." }
+    ],
+    hidden_clues: [{ clue_id: "e_secret_99", unlock_turn: 6, text: "SYSTEM ALERT: Sensor in back alley receiving area detected a forgotten data node..." }],
+    branches: {
+      "b_blame_ren": { text: "The agent targeted club owner Ren. While involved in smuggling, he did not commit murder. Shielded by his legal team, he walked free — and the real killer, Sable, quietly slipped out of the city.", visual_fx: "glitch-orange", impact: { ap_loss: 30 } }
+    },
+    zone_layout: {
+      zone_booth3:   { x: 50, y: 18, label: 'Neural Pod 3',    sublabel: 'Crime Scene',    icon: '🧠', color: '#ff3860' },
+      zone_bar:      { x: 15, y: 60, label: 'Bar Counter',     sublabel: "Suspect's Turf",  icon: '🍸', color: '#00e5ff' },
+      zone_backroom: { x: 85, y: 60, label: 'Control Room',    sublabel: 'Key Evidence',   icon: '💻', color: '#a78bfa' },
+      zone_alley:    { x: 50, y: 85, label: 'Back Alley',      sublabel: 'Smuggling Den',  icon: '📦', color: '#ffaa00' },
+    },
+  },
 };
 
 // ─── Case catalogue (for selection screen) ────────────────────────────────────
