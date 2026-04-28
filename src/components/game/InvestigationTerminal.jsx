@@ -9,6 +9,7 @@ import GlitchOverlay from '@/components/game/GlitchOverlay';
 import BSoD from '@/components/game/BSoD';
 import AgentSynergyFX from '@/components/game/AgentSynergyFX';
 import DecisionLog from '@/components/game/DecisionLog';
+import CaseFlowMap from '@/components/game/CaseFlowMap';
 
 const PHASE_COLORS = Phase_Color_Map;
 
@@ -27,7 +28,10 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
   const [npcDialogue, setNpcDialogue] = useState([]);
   const [showBoard, setShowBoard] = useState(false);
   const [showDecisionLog, setShowDecisionLog] = useState(false);
+  const [showFlowMap, setShowFlowMap] = useState(false);
   const [decisionLog, setDecisionLog] = useState([]);
+  const [agentPath, setAgentPath] = useState(['zone_datacenter']);
+  const [zoneFeedback, setZoneFeedback] = useState({});
   const [thoughtText, setThoughtText] = useState('');
   const [abortCtrl, setAbortCtrl] = useState(null);
   const [synergyEvent, setSynergyEvent] = useState(null);
@@ -205,6 +209,24 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
         || settlement.confusion_increase > 10
         || settlement.is_trap
         || (actionTag && ['present_evidence', 'analyze_forensics', 'check_alibi'].includes(actionTag));
+
+      // ── Update flow map agent path & zone feedback ─────────────────────
+      if (newState.current_zone) {
+        setAgentPath(prev => [...prev, newState.current_zone]);
+      } else {
+        // infer zone from action
+        const actionZoneMap = {
+          search_area: 'zone_datacenter', examine_clue: 'zone_datacenter', analyze_forensics: 'zone_lab',
+          check_cctv: 'zone_lobby', hack_terminal: 'zone_lab', check_alibi: 'zone_lobby',
+          action_open_glass_door: 'zone_balcony', present_evidence: 'zone_datacenter',
+        };
+        const inferredZone = actionZoneMap[actionTag] || 'zone_datacenter';
+        setAgentPath(prev => [...prev, inferredZone]);
+        if (settlement.action_narration) {
+          const shortFeedback = settlement.action_narration.replace(/[^\u0000-\u007E\u4e00-\u9fa5]/g, '').slice(0, 28);
+          setZoneFeedback(prev => ({ ...prev, [inferredZone]: shortFeedback }));
+        }
+      }
 
       setDecisionLog(prev => [...prev, {
         id: Date.now(),
@@ -405,12 +427,17 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
           ))}
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setShowBoard(b => !b); setShowDecisionLog(false); }}
+          <button onClick={() => { setShowFlowMap(m => !m); setShowBoard(false); setShowDecisionLog(false); }}
+            className="text-xs px-3 py-1 rounded border transition-all"
+            style={{ borderColor: '#a78bfa50', color: '#a78bfa', backgroundColor: showFlowMap ? '#a78bfa20' : 'transparent' }}>
+            🗺 MAP
+          </button>
+          <button onClick={() => { setShowBoard(b => !b); setShowDecisionLog(false); setShowFlowMap(false); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: `${accentColor}50`, color: accentColor, backgroundColor: showBoard ? `${accentColor}20` : 'transparent' }}>
             🕸 BOARD
           </button>
-          <button onClick={() => { setShowDecisionLog(d => !d); setShowBoard(false); }}
+          <button onClick={() => { setShowDecisionLog(d => !d); setShowBoard(false); setShowFlowMap(false); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: '#ffaa0050', color: '#ffaa00', backgroundColor: showDecisionLog ? '#ffaa0020' : 'transparent', position: 'relative' }}>
             📓 LOG
@@ -538,7 +565,17 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
         {/* Right Sidebar */}
         <div className="w-72 border-l flex flex-col overflow-hidden"
           style={{ borderColor: `${accentColor}20`, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          {showDecisionLog ? (
+          {showFlowMap ? (
+            <CaseFlowMap
+              gameState={gameState}
+              caseData={caseData}
+              agentPath={agentPath}
+              zoneFeedback={zoneFeedback}
+              accentColor={accentColor}
+              agentStrategy={agentStrategy}
+              onPriorityChange={() => {}}
+            />
+          ) : showDecisionLog ? (
             <DecisionLog entries={decisionLog} accentColor={accentColor} />
           ) : showBoard ? (
             <div className="flex-1 p-2">
