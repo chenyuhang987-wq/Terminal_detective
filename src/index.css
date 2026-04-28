@@ -86,3 +86,58 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Terminal Detective Global Animations ─────────────────────────── */
+@keyframes glitchLine {
+  0%   { transform: translateX(0) scaleX(1); opacity: 1; }
+  20%  { transform: translateX(-4px) scaleX(1.02); }
+  40%  { transform: translateX(6px) scaleX(0.98); opacity: 0.6; }
+  60%  { transform: translateX(-2px); opacity: 1; }
+  80%  { transform: translateX(3px); }
+  100% { transform: translateX(0) scaleX(1); opacity: 0.3; }
+}
+
+@keyframes scanBeam {
+  0%   { top: -2px; opacity: 0.8; }
+  90%  { opacity: 0.5; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes holoPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.08); }
+}
+
+@keyframes dataRain {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.8; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes breatheAgent {
+  0%, 100% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; transform: scale(1); }
+  50%       { box-shadow: 0 0 40px currentColor, 0 0 80px currentColor; transform: scale(1.05); }
+}
+
+@keyframes neonFlicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 22%, 24%, 55% { opacity: 0.4; }
+}
+
+@keyframes laserShot {
+  0%   { stroke-dashoffset: 1000; opacity: 0; }
+  30%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0.8; }
+}
+
+/* Scrollbar styling for terminal */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(0,255,255,0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,255,255,0.6); }
