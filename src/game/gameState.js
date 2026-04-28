@@ -6,7 +6,7 @@
 import { DEFAULT_AGENT_CONFIG } from './caseData';
 
 // ── Initial State Factory ─────────────────────────────────────────────────
-export function createInitialGameState(caseData = Case_Data_Lvl_01) {
+export function createInitialGameState(caseData) {
   return {
     case_id: caseData.case_id,
     case_title: caseData.title,
