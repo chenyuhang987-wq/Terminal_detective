@@ -10,6 +10,7 @@ import BSoD from '@/components/game/BSoD';
 import AgentSynergyFX from '@/components/game/AgentSynergyFX';
 import DecisionLog from '@/components/game/DecisionLog';
 import CaseFlowMap from '@/components/game/CaseFlowMap';
+import GameOverScreen from '@/components/game/GameOverScreen';
 
 const PHASE_COLORS = Phase_Color_Map;
 
@@ -35,6 +36,8 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
   const [thoughtText, setThoughtText] = useState('');
   const [abortCtrl, setAbortCtrl] = useState(null);
   const [synergyEvent, setSynergyEvent] = useState(null);
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [finalJudgeResult, setFinalJudgeResult] = useState(null);
 
   const triggerSynergy = useCallback((type, clue) => {
     setSynergyEvent({
@@ -361,6 +364,8 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
       if (result.is_passed) {
         addLine('\n🎉 CASE SOLVED — ARCHITECT VICTORIOUS!', 'success');
         addLine(`\n📋 Judge verdict [${result.score}]: ${result.critique}`, 'success');
+        setFinalJudgeResult(result);
+        setTimeout(() => setShowGameOver(true), 1800);
       } else {
         const apLoss = result.score === 'D' ? Math.floor(gameState.action_points_left * 0.5) : 3;
         setGameState(prev => ({
@@ -381,6 +386,19 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
 
   const bgColor = phaseColor.bg;
   const accentColor = phaseColor.accent;
+
+  if (showGameOver) {
+    return (
+      <GameOverScreen
+        judgeResult={finalJudgeResult}
+        gameState={gameState}
+        caseData={caseData}
+        agentStrategy={agentStrategy}
+        onReturnToLobby={onBackToLobby}
+        onReturnToLanding={onGameEnd}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col"
@@ -457,6 +475,11 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: '#00ff8850', color: '#00ff88', backgroundColor: reportMode ? '#00ff8820' : 'transparent' }}>
             📋 REPORT
+          </button>
+          <button onClick={() => { setFinalJudgeResult(judgeResult); setShowGameOver(true); }}
+            className="text-xs px-3 py-1 rounded border transition-all"
+            style={{ borderColor: '#ff386050', color: '#ff3860', backgroundColor: 'transparent' }}>
+            ⏹ END
           </button>
         </div>
       </div>
