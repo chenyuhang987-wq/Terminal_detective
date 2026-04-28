@@ -115,6 +115,12 @@ export default function MultiAgentConsole({ onDeploy }) {
   });
   const [progression, setProgression] = useState(() => loadProgression());
   const [activeAgent, setActiveAgent] = useState(0);
+  const [comboEvent, setComboEvent] = useState(null);
+
+  const fireCombo = (pair) => {
+    setComboEvent({ pair, id: Date.now() });
+    setTimeout(() => setComboEvent(null), 100);
+  };
 
   const updateAgent = (idx, updated) => {
     setAgents(prev => prev.map((a, i) => i === idx ? updated : a));
@@ -167,20 +173,45 @@ export default function MultiAgentConsole({ onDeploy }) {
         {/* ── Data flow visualization ── */}
         <div className="rounded-2xl border mb-4 overflow-hidden"
           style={{ borderColor: 'rgba(0,229,255,0.15)', background: 'rgba(10,20,40,0.6)' }}>
-          <div className="flex items-center justify-between px-4 pt-3 pb-1">
+          <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-wrap gap-2">
             <div className="text-xs font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
               ◈ 智能体协同网络
             </div>
-            <div className="text-xs px-2 py-0.5 rounded-full border" style={{
-              borderColor: 'rgba(0,229,255,0.3)',
-              color: '#00e5ff',
-              background: 'rgba(0,229,255,0.08)',
-              fontFamily: 'monospace',
-            }}>
-              总属性 {totalPoints}pt
+            {/* Combo trigger buttons */}
+            <div className="flex gap-1 items-center">
+              {[
+                { pair: [0, 2], label: '情报↔解密', color: '#a3ff47' },
+                { pair: [0, 1], label: '观察↔审讯', color: '#ffe600' },
+                { pair: [1, 2], label: '审讯↔渗透', color: '#ff9d00' },
+                { pair: [0, 1, 2], label: '三重连击', color: '#ff3aff' },
+              ].map(c => (
+                <button
+                  key={c.pair.join('-')}
+                  onClick={() => fireCombo(c.pair)}
+                  className="text-xs px-2 py-0.5 rounded-lg border transition-all hover:opacity-90 active:scale-95"
+                  style={{
+                    borderColor: `${c.color}50`,
+                    color: c.color,
+                    background: `${c.color}10`,
+                    fontFamily: 'monospace',
+                    fontSize: '0.55rem',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+              <div className="text-xs px-2 py-0.5 rounded-full border" style={{
+                borderColor: 'rgba(0,229,255,0.3)',
+                color: '#00e5ff',
+                background: 'rgba(0,229,255,0.08)',
+                fontFamily: 'monospace',
+              }}>
+                {totalPoints}pt
+              </div>
             </div>
           </div>
-          <DataFlowCanvas agents={agents} activeAgent={activeAgent} flowActivity={true} />
+          <DataFlowCanvas agents={agents} activeAgent={activeAgent} flowActivity={true} comboEvent={comboEvent} />
         </div>
 
         {/* ── XP / progression strip ── */}
