@@ -96,8 +96,8 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
     const hidden = caseData.hidden_clues || [];
     hidden.forEach(hc => {
       if (gameState.turn_count >= hc.unlock_turn && !gameState.unlocked_clues.includes(hc.clue_id)) {
-        addLine(`\n🔐 ENCRYPTED MESSAGE RECEIVED: "${hc.text}"`, 'system');
-        addLine(`📦 New evidence secured: ${hc.clue_id}`, 'success');
+        addLine(`\n${t.encryptedMessage} "${hc.text}"`, 'system');
+        addLine(`${t.newEvidenceSecured} ${hc.clue_id}`, 'success');
         setGameState(prev => ({
           ...prev,
           unlocked_clues: [...prev.unlocked_clues, hc.clue_id]
@@ -145,13 +145,13 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
       setReactState(ReAct_Enum.OBSERVE);
       const observation = generateObservation(gs, caseData);
       addLine('\n' + '═'.repeat(50), 'divider');
-      addLine(`◈ TURN ${gs.turn_count + 1} — OBSERVATION PHASE`, 'phase');
+      addLine(`◈ ${t.turnLabel} ${gs.turn_count + 1} — ${t.observationPhase}`, 'phase');
       addLine(observation, 'observe');
       await sleep(800);
 
       // ── Phase 2: THINK ────────────────────────────────────────────────
       setReactState(ReAct_Enum.THINK);
-      addLine('\n◈ ENTERING NEURAL PROCESSING MODE...', 'phase');
+      addLine('\n' + t.neuralProcessing, 'phase');
       setThoughtText('');
 
       startStressTimer();
@@ -180,7 +180,7 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
 
       // ── Phase 3: ACT ──────────────────────────────────────────────────
       setReactState(ReAct_Enum.ACT);
-      addLine('\n◈ ACTION SYNTHESIS...', 'phase');
+      addLine('\n' + t.actionSynthesis, 'phase');
       startStressTimer();
 
       const actionText = await getAction({
@@ -196,7 +196,10 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
       const isLegal = actionTag && Legal_Actions_List.includes(actionTag);
 
       if (actionTag) {
-        addLine(`\n▶ ACTION ISSUED: [${actionTag.toUpperCase()}]`, isLegal ? 'action' : 'error');
+        if (actionTag) {
+        const actionMsg = lang === 'zh' ? `▶ 行动已下达：[${actionTag.toUpperCase()}]` : `▶ ACTION ISSUED: [${actionTag.toUpperCase()}]`;
+        addLine(`\n${actionMsg}`, isLegal ? 'action' : 'error');
+      }
       }
 
       // ── Settlement ────────────────────────────────────────────────────
@@ -216,7 +219,7 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
       // Conflict dictionary check — extra confusion for mutually exclusive clues
       if (checkConflictClues(newState.unlocked_clues, caseData.conflict_dictionary)) {
         newState.confusion_score = Math.min(100, newState.confusion_score + 15);
-        addLine(`\n⚠ LOGIC CONFLICT DETECTED: Contradictory evidence in matrix. Confusion +15.`, 'warning');
+        addLine(`\n${t.logicConflict}`, 'warning');
       }
 
       // Push checkpoint at key zones
@@ -309,7 +312,8 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
       }
 
       if (settlement.confusion_increase > 0) {
-        addLine(`\n⚠ Confusion increased by ${settlement.confusion_increase}. [${newState.confusion_score}/100]`, 'warning');
+       const confusionMsg = lang === 'zh' ? `⚠ 混乱值增加 ${settlement.confusion_increase}。[${newState.confusion_score}/100]` : `⚠ Confusion increased by ${settlement.confusion_increase}. [${newState.confusion_score}/100]`;
+       addLine(`\n${confusionMsg}`, 'warning');
       }
 
       setReactState(ReAct_Enum.IDLE);
@@ -453,11 +457,11 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
         </div>
         <div className="flex items-center gap-6 text-xs">
           {[
-            { label: t.hudPhase, val: phaseColor.label },
-            { label: t.hudHp, val: `${gameState.current_hp}%` },
-            { label: t.hudAp, val: `${gameState.action_points_left}/20` },
-            { label: t.hudClues, val: `${gameState.unlocked_clues.length}/${caseData.clue_dictionary.length}` },
-            { label: t.hudConfusion, val: `${gameState.confusion_score}%` },
+            { label: lang === 'zh' ? '阶段' : 'PHASE', val: phaseColor.label },
+            { label: lang === 'zh' ? 'HP' : 'HP', val: `${gameState.current_hp}%` },
+            { label: lang === 'zh' ? 'AP' : 'AP', val: `${gameState.action_points_left}/20` },
+            { label: lang === 'zh' ? '线索' : 'CLUES', val: `${gameState.unlocked_clues.length}/${caseData.clue_dictionary.length}` },
+            { label: lang === 'zh' ? '混乱' : 'CONFUSION', val: `${gameState.confusion_score}%` },
           ].map(s => (
             <div key={s.label} className="text-center">
               <div className="opacity-40" style={{ color: accentColor }}>{s.label}</div>

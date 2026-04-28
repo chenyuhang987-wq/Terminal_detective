@@ -79,8 +79,8 @@ export default function MiniMap({ gameState, caseData, agentPath, accentColor })
         <span style={{ fontSize: '0.55rem', color: accentColor, fontWeight: 700, letterSpacing: '0.1em' }}>
           {t.minimap}
         </span>
-        <span style={{ fontSize: '0.5rem', color: `${accentColor}60` }}>
-          {expanded ? t.collapse : t.expand}
+        <span style={{ fontSize: '0.6rem', color: `${accentColor}60`, cursor: 'pointer' }}>
+          {expanded ? '−' : '+'}
         </span>
       </div>
 
