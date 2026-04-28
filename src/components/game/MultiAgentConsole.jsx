@@ -81,78 +81,111 @@ function StarField() {
 // ── Animated Magnifying Glass ────────────────────────────────────────────────
 function MagnifyingGlass() {
   return (
-    <div className="flex justify-center mb-6">
-      <div style={{ position: 'relative', width: 100, height: 100, animation: 'mag-float 3s ease-in-out infinite' }}>
-        <svg width="100" height="100" viewBox="0 0 100 100">
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+      <div style={{ position: 'relative', width: 130, height: 130, animation: 'mag-float 4s ease-in-out infinite' }}>
+        <svg width="130" height="130" viewBox="0 0 130 130" overflow="visible">
           <defs>
-            <filter id="glow-cyan">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            <radialGradient id="lens-fill" cx="42%" cy="38%" r="55%">
+              <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.18" />
+              <stop offset="60%" stopColor="#0044aa" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#000020" stopOpacity="0.05" />
+            </radialGradient>
+            <filter id="mg-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="4" result="b" />
+              <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
-            <filter id="glow-cyan-strong">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            <filter id="mg-glow-sm" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="2" result="b" />
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
+            <clipPath id="lens-clip">
+              <circle cx="50" cy="50" r="30" />
+            </clipPath>
           </defs>
 
-          {/* Outer pulsing ring */}
-          <circle cx="40" cy="40" r="30" fill="none" stroke="#00e5ff" strokeWidth="1"
-            strokeDasharray="6 4" opacity="0.35"
-            style={{ animation: 'mag-ring-spin 8s linear infinite', transformOrigin: '40px 40px' }} />
+          {/* ── Outer orbit ring (spinning dashes) ── */}
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#00e5ff" strokeWidth="0.8"
+            strokeDasharray="5 6" opacity="0.25"
+            style={{ animation: 'mg-ring-cw 12s linear infinite', transformOrigin: '50px 50px' }} />
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#ff3aff" strokeWidth="0.6"
+            strokeDasharray="3 9" opacity="0.2"
+            style={{ animation: 'mg-ring-ccw 9s linear infinite', transformOrigin: '50px 50px' }} />
 
-          {/* Main lens circle */}
-          <circle cx="40" cy="40" r="22" fill="rgba(0,229,255,0.04)" stroke="#00e5ff" strokeWidth="2.5"
-            filter="url(#glow-cyan-strong)"
-            style={{ animation: 'mag-pulse 2s ease-in-out infinite' }} />
+          {/* ── Lens body ── */}
+          <circle cx="50" cy="50" r="30" fill="url(#lens-fill)"
+            stroke="#00e5ff" strokeWidth="2.8"
+            filter="url(#mg-glow)"
+            style={{ animation: 'mg-lens-pulse 2.5s ease-in-out infinite' }} />
 
-          {/* Inner shimmer */}
-          <circle cx="40" cy="40" r="16" fill="none" stroke="#00e5ff" strokeWidth="0.8" opacity="0.25" />
+          {/* ── Lens inner ring ── */}
+          <circle cx="50" cy="50" r="24" fill="none" stroke="#00e5ff" strokeWidth="0.7" opacity="0.3" />
 
-          {/* Question mark */}
-          <text x="40" y="47" textAnchor="middle" fontSize="20" fontWeight="bold"
-            fill="#00e5ff" filter="url(#glow-cyan)"
-            style={{ animation: 'mag-q-flicker 4s ease-in-out infinite', fontFamily: 'monospace' }}>?</text>
+          {/* ── Scan beam sweeping through lens ── */}
+          <line x1="20" y1="50" x2="80" y2="50"
+            stroke="#00e5ff" strokeWidth="1.5" opacity="0.7"
+            clipPath="url(#lens-clip)"
+            style={{ animation: 'mg-scan 2s ease-in-out infinite', transformOrigin: '50px 50px' }} />
 
-          {/* Handle */}
-          <line x1="57" y1="57" x2="80" y2="82" stroke="#00e5ff" strokeWidth="5"
-            strokeLinecap="round" filter="url(#glow-cyan)" />
-          {/* Handle highlight */}
-          <line x1="57" y1="57" x2="80" y2="82" stroke="white" strokeWidth="1.5"
-            strokeLinecap="round" opacity="0.3" />
+          {/* ── Lens flare highlight ── */}
+          <ellipse cx="38" cy="38" rx="6" ry="3" fill="white" opacity="0.15"
+            style={{ animation: 'mg-flare 3s ease-in-out infinite' }} />
 
-          {/* Orbiting dot */}
-          <circle r="3" fill="#ff3aff" filter="url(#glow-cyan)"
-            style={{ animation: 'mag-orbit 2.5s linear infinite', transformOrigin: '40px 40px' }}>
-            <animateMotion dur="2.5s" repeatCount="indefinite"
-              path="M 40 14 A 26 26 0 1 1 39.9 14" />
+          {/* ── Question mark ── */}
+          <text x="50" y="58" textAnchor="middle" fontSize="22" fontWeight="900"
+            fill="#00e5ff" filter="url(#mg-glow-sm)"
+            fontFamily="'Courier New', monospace"
+            style={{ animation: 'mg-q 5s ease-in-out infinite' }}>?</text>
+
+          {/* ── Handle ── */}
+          <line x1="73" y1="73" x2="104" y2="106"
+            stroke="#00e5ff" strokeWidth="6" strokeLinecap="round" filter="url(#mg-glow)" />
+          <line x1="73" y1="73" x2="104" y2="106"
+            stroke="white" strokeWidth="1.8" strokeLinecap="round" opacity="0.25" />
+
+          {/* ── Pink orbiting dot ── */}
+          <circle r="3.5" fill="#ff3aff" filter="url(#mg-glow-sm)">
+            <animateMotion dur="2.8s" repeatCount="indefinite"
+              path="M 50 16 A 34 34 0 1 1 49.9 16" />
           </circle>
 
-          {/* Second orbiting dot (offset) */}
-          <circle r="2" fill="#00e5ff" opacity="0.7"
-            style={{ animation: 'mag-orbit2 3.5s linear infinite', transformOrigin: '40px 40px' }}>
-            <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.5s"
-              path="M 40 14 A 26 26 0 1 0 39.9 14" />
+          {/* ── Cyan trailing dot ── */}
+          <circle r="2" fill="#00e5ff" opacity="0.8">
+            <animateMotion dur="2.8s" repeatCount="indefinite" begin="-1.4s"
+              path="M 50 16 A 34 34 0 1 1 49.9 16" />
+          </circle>
+
+          {/* ── Yellow spark dot ── */}
+          <circle r="1.5" fill="#ffe600" opacity="0.9">
+            <animateMotion dur="4s" repeatCount="indefinite" begin="-2s"
+              path="M 50 12 A 38 38 0 1 0 49.9 12" />
           </circle>
         </svg>
 
         <style>{`
           @keyframes mag-float {
-            0%, 100% { transform: translateY(0px) rotate(-2deg); }
-            50%       { transform: translateY(-10px) rotate(2deg); }
+            0%,100% { transform: translateY(0) rotate(-3deg) scale(1); }
+            50%      { transform: translateY(-12px) rotate(3deg) scale(1.05); }
           }
-          @keyframes mag-pulse {
-            0%, 100% { opacity: 0.85; }
-            50%       { opacity: 1; filter: drop-shadow(0 0 12px #00e5ff); }
+          @keyframes mg-ring-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
+          @keyframes mg-ring-ccw { from { transform: rotate(0deg); }   to { transform: rotate(-360deg); } }
+          @keyframes mg-lens-pulse {
+            0%,100% { opacity: 0.85; }
+            50%     { opacity: 1; filter: drop-shadow(0 0 16px #00e5ff) drop-shadow(0 0 32px #00e5ff60); }
           }
-          @keyframes mag-ring-spin {
-            from { transform: rotate(0deg); }
-            to   { transform: rotate(360deg); }
+          @keyframes mg-scan {
+            0%   { transform: rotate(-60deg); opacity: 0; }
+            15%  { opacity: 0.8; }
+            85%  { opacity: 0.6; }
+            100% { transform: rotate(60deg); opacity: 0; }
           }
-          @keyframes mag-q-flicker {
-            0%, 90%, 100% { opacity: 1; }
-            92%           { opacity: 0.2; }
-            94%           { opacity: 1; }
-            96%           { opacity: 0.4; }
+          @keyframes mg-flare {
+            0%,100% { opacity: 0.1; }
+            50%     { opacity: 0.35; }
+          }
+          @keyframes mg-q {
+            0%,80%,100% { opacity: 1; transform: scale(1); }
+            85%          { opacity: 0.1; transform: scale(0.9); }
+            90%          { opacity: 0.8; transform: scale(1.05); }
           }
         `}</style>
       </div>
@@ -160,84 +193,97 @@ function MagnifyingGlass() {
   );
 }
 
-// ── Animated Title Letters ────────────────────────────────────────────────────
-function GlitchTitle() {
-  const title = 'TERMINAL  DETECTIVE';
-  return (
-    <h1
-      className="font-black leading-none mb-3 select-none"
-      style={{
-        fontSize: 'clamp(2rem, 6vw, 3.4rem)',
-        letterSpacing: '0.18em',
-        fontFamily: "'Courier New', monospace",
-      }}
-    >
-      {title.split('').map((ch, i) => (
-        <span
-          key={i}
-          style={{
-            color: '#ff3aff',
-            textShadow: '0 0 10px #ff3aff, 0 0 30px #ff3aff80, 0 0 60px #ff3aff30, 0 0 2px #fff',
-            display: 'inline-block',
-            animation: `title-letter-in 0.4s ${i * 0.045}s both, title-neon-flicker 6s ${i * 0.3 + 1}s ease-in-out infinite`,
-          }}
-        >
-          {ch === ' ' ? '\u00A0' : ch}
-        </span>
-      ))}
-      <style>{`
-        @keyframes title-letter-in {
-          from { opacity: 0; transform: translateY(-18px) scaleY(1.4); filter: blur(4px); }
-          to   { opacity: 1; transform: translateY(0) scaleY(1); filter: blur(0); }
-        }
-        @keyframes title-neon-flicker {
-          0%, 85%, 100% { opacity: 1; }
-          87%            { opacity: 0.15; }
-          89%            { opacity: 1; }
-          91%            { opacity: 0.35; }
-          93%            { opacity: 1; }
-        }
-      `}</style>
-    </h1>
-  );
-}
-
-// ── Neon Title ──────────────────────────────────────────────────────────────
+// ── Animated Title ────────────────────────────────────────────────────────────
 function NeonTitle() {
+  const line1 = 'TERMINAL';
+  const line2 = 'DETECTIVE';
   return (
-    <div className="text-center mb-1 select-none">
+    <div style={{ textAlign: 'center', marginBottom: 4 }}>
       <MagnifyingGlass />
-      <GlitchTitle />
 
-      {/* LOGIC ARCHITECT */}
-      <div
-        className="text-xs font-light mb-6"
-        style={{
-          color: 'rgba(200,230,255,0.5)',
-          letterSpacing: '0.55em',
-          fontFamily: "'Courier New', monospace",
-          animation: 'logic-fade-in 1.2s 0.8s both',
-        }}
-      >
+      {/* Two-line centered title */}
+      <div style={{ fontFamily: "'Courier New', monospace", lineHeight: 1.1, marginBottom: 12 }}>
+        {[line1, line2].map((word, wi) => (
+          <div key={wi} style={{ display: 'block' }}>
+            {word.split('').map((ch, li) => {
+              const i = wi * 10 + li;
+              return (
+                <span key={li} style={{
+                  display: 'inline-block',
+                  fontSize: 'clamp(2.2rem, 7vw, 4rem)',
+                  fontWeight: 900,
+                  color: '#ff3aff',
+                  textShadow: '0 0 8px #ff3aff, 0 0 24px #ff3aff90, 0 0 60px #ff3aff30, 0 0 2px #fff',
+                  letterSpacing: '0.22em',
+                  animation: `tl-in 0.5s ${i * 0.05}s cubic-bezier(.22,1,.36,1) both, tl-wave 4s ${i * 0.12 + 1.2}s ease-in-out infinite, tl-flicker 8s ${i * 0.4 + 2}s ease-in-out infinite`,
+                }}>
+                  {ch}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Chromatic underline bar */}
+      <div style={{
+        height: 2,
+        margin: '0 auto 14px',
+        width: '70%',
+        background: 'linear-gradient(to right, transparent, #ff3aff, #00e5ff, #ff3aff, transparent)',
+        boxShadow: '0 0 12px #ff3aff80, 0 0 24px #00e5ff40',
+        animation: 'tl-bar 1.2s 0.9s both',
+        borderRadius: 2,
+      }} />
+
+      {/* LOGIC ARCHITECT subtitle */}
+      <div style={{
+        color: 'rgba(200,230,255,0.5)',
+        letterSpacing: '0.55em',
+        fontSize: '0.7rem',
+        fontFamily: "'Courier New', monospace",
+        marginBottom: 20,
+        animation: 'tl-fade 1s 1.2s both',
+      }}>
         LOGIC&nbsp;&nbsp;ARCHITECT
       </div>
 
       {/* Panel label */}
-      <div
-        className="inline-block text-sm font-bold tracking-widest"
-        style={{
-          color: '#00e5ff',
-          textShadow: '0 0 8px #00e5ff',
-          fontFamily: "'Courier New', monospace",
-          animation: 'logic-fade-in 0.8s 1.5s both',
-        }}
-      >
+      <div style={{
+        display: 'inline-block',
+        fontSize: '0.85rem',
+        fontWeight: 700,
+        letterSpacing: '0.15em',
+        color: '#00e5ff',
+        textShadow: '0 0 10px #00e5ff',
+        fontFamily: "'Courier New', monospace",
+        animation: 'tl-fade 0.8s 1.6s both',
+      }}>
         [探员配置面板]
       </div>
 
       <style>{`
-        @keyframes logic-fade-in {
-          from { opacity: 0; transform: translateY(6px); }
+        @keyframes tl-in {
+          from { opacity: 0; transform: translateY(-22px) scaleY(1.5) skewX(-6deg); filter: blur(6px); }
+          to   { opacity: 1; transform: translateY(0) scaleY(1) skewX(0); filter: blur(0); }
+        }
+        @keyframes tl-wave {
+          0%,100% { transform: translateY(0); }
+          50%     { transform: translateY(-4px); }
+        }
+        @keyframes tl-flicker {
+          0%,88%,100% { opacity: 1; }
+          90%          { opacity: 0.08; }
+          92%          { opacity: 1; }
+          94%          { opacity: 0.3; }
+          96%          { opacity: 1; }
+        }
+        @keyframes tl-bar {
+          from { opacity: 0; transform: scaleX(0); }
+          to   { opacity: 1; transform: scaleX(1); }
+        }
+        @keyframes tl-fade {
+          from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
