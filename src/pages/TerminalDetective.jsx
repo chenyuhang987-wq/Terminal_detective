@@ -146,9 +146,9 @@ function SplashScreen({ onEnter, ready }) {
               key={i}
               className="text-xs leading-6"
               style={{
-                color: line.includes('NOMINAL') || line.includes('READY') ? '#00ff88'
-                  : line.includes('ERROR') ? '#ff3860'
-                  : line === '' ? 'transparent'
+                color: line && (line.includes('NOMINAL') || line.includes('READY')) ? '#00ff88'
+                  : line && line.includes('ERROR') ? '#ff3860'
+                  : !line ? 'transparent'
                   : '#00ffff80',
                 fontFamily: 'monospace',
               }}
