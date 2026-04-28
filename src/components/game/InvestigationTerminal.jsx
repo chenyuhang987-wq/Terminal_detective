@@ -8,6 +8,7 @@ import EvidenceBoard from '@/components/game/EvidenceBoard';
 import GlitchOverlay from '@/components/game/GlitchOverlay';
 import BSoD from '@/components/game/BSoD';
 import AgentSynergyFX from '@/components/game/AgentSynergyFX';
+import DecisionLog from '@/components/game/DecisionLog';
 
 const PHASE_COLORS = Phase_Color_Map;
 
@@ -25,6 +26,8 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
   const [selectedNPC, setSelectedNPC] = useState(null);
   const [npcDialogue, setNpcDialogue] = useState([]);
   const [showBoard, setShowBoard] = useState(false);
+  const [showDecisionLog, setShowDecisionLog] = useState(false);
+  const [decisionLog, setDecisionLog] = useState([]);
   const [thoughtText, setThoughtText] = useState('');
   const [abortCtrl, setAbortCtrl] = useState(null);
   const [synergyEvent, setSynergyEvent] = useState(null);
@@ -196,6 +199,36 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
       ].slice(-12);
 
       setGameState(newState);
+
+      // ── Build decision log entry ──────────────────────────────────────
+      const isKeyDecision = newClues.length > 0
+        || settlement.confusion_increase > 10
+        || settlement.is_trap
+        || (actionTag && ['present_evidence', 'analyze_forensics', 'check_alibi'].includes(actionTag));
+
+      setDecisionLog(prev => [...prev, {
+        id: Date.now(),
+        turn: gs.turn_count + 1,
+        thought: fullThought,
+        action: actionTag,
+        observation: settlement.action_narration,
+        newClues: newClues.map(id => {
+          const c = caseData.clue_dictionary.find(x => x.clue_id === id);
+          return c ? `${c.visual_icon} ${c.keyword}` : id;
+        }),
+        isTrap: !!settlement.is_trap,
+        isKeyDecision,
+        keyReason: settlement.is_trap
+          ? '⚠ 陷阱事件触发'
+          : newClues.length > 0
+          ? `发现 ${newClues.length} 条新线索`
+          : settlement.confusion_increase > 10
+          ? '混乱值大幅上升'
+          : isKeyDecision
+          ? '关键逻辑节点'
+          : '',
+        timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      }]);
 
       // Show narration
       if (settlement.is_trap) {
@@ -372,10 +405,26 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
           ))}
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setShowBoard(b => !b)}
+          <button onClick={() => { setShowBoard(b => !b); setShowDecisionLog(false); }}
             className="text-xs px-3 py-1 rounded border transition-all"
             style={{ borderColor: `${accentColor}50`, color: accentColor, backgroundColor: showBoard ? `${accentColor}20` : 'transparent' }}>
             🕸 BOARD
+          </button>
+          <button onClick={() => { setShowDecisionLog(d => !d); setShowBoard(false); }}
+            className="text-xs px-3 py-1 rounded border transition-all"
+            style={{ borderColor: '#ffaa0050', color: '#ffaa00', backgroundColor: showDecisionLog ? '#ffaa0020' : 'transparent', position: 'relative' }}>
+            📓 LOG
+            {decisionLog.filter(e => e.isKeyDecision || e.isTrap).length > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -4,
+                width: 14, height: 14, borderRadius: '50%',
+                background: '#ffaa00', color: '#000',
+                fontSize: '0.45rem', fontWeight: 900,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {decisionLog.filter(e => e.isKeyDecision || e.isTrap).length}
+              </span>
+            )}
           </button>
           <button onClick={() => setReportMode(r => !r)}
             className="text-xs px-3 py-1 rounded border transition-all"
@@ -489,7 +538,9 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
         {/* Right Sidebar */}
         <div className="w-72 border-l flex flex-col overflow-hidden"
           style={{ borderColor: `${accentColor}20`, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          {showBoard ? (
+          {showDecisionLog ? (
+            <DecisionLog entries={decisionLog} accentColor={accentColor} />
+          ) : showBoard ? (
             <div className="flex-1 p-2">
               <div className="text-xs mb-2 tracking-widest text-center" style={{ color: accentColor }}>EVIDENCE BOARD</div>
               <div style={{ height: 'calc(100% - 30px)' }}>
