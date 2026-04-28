@@ -1,4 +1,5 @@
 import React from 'react';
+import AgentSkillPanel from '@/components/game/AgentSkillPanel';
 
 const AGENT_COLORS = ['#00e5ff', '#ff6b6b', '#a78bfa'];
 const AGENT_BG     = ['rgba(0,229,255,0.08)', 'rgba(255,107,107,0.08)', 'rgba(167,139,250,0.08)'];
@@ -36,7 +37,7 @@ function NeonSlider({ label, icon, desc, value, color, onChange, max }) {
   );
 }
 
-export default function AgentSlotCard({ agent, idx, isActive, totalPool, onUpdate, onClick }) {
+export default function AgentSlotCard({ agent, idx, isActive, totalPool, onUpdate, onClick, xp }) {
   const color = AGENT_COLORS[idx];
   const icons = ['👁️', '🔥', '💻'];
   const roles = ['观察型 · OBSERVER', '审讯型 · ENFORCER', '黑客型 · PHANTOM'];
@@ -135,6 +136,9 @@ export default function AgentSlotCard({ agent, idx, isActive, totalPool, onUpdat
           </button>
         ))}
       </div>
+
+      {/* ── Skill / Level Panel ── */}
+      <AgentSkillPanel agentIdx={idx} xp={xp || 0} color={color} />
     </div>
   );
 }

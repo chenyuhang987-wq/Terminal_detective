@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { LocalStorage } from '@/game/gameState';
 import { DEFAULT_AGENT_CONFIG } from '@/game/caseData';
+import { loadProgression, saveProgression, getLevelFromXP } from '@/game/agentProgression';
 import DataFlowCanvas from '@/components/game/DataFlowCanvas';
 import AgentSlotCard from '@/components/game/AgentSlotCard';
 import TeamSynergyBar from '@/components/game/TeamSynergyBar';
@@ -111,6 +112,7 @@ export default function MultiAgentConsole({ onDeploy }) {
     if (saved && Array.isArray(saved) && saved.length === 3) return saved;
     return makeDefaultTeam();
   });
+  const [progression, setProgression] = useState(() => loadProgression());
   const [activeAgent, setActiveAgent] = useState(0);
 
   const updateAgent = (idx, updated) => {
@@ -118,6 +120,7 @@ export default function MultiAgentConsole({ onDeploy }) {
   };
 
   const handleDeploy = () => {
+    saveProgression(progression);
     LocalStorage.saveTeamConfig(agents);
 
     const maxLogic = Math.max(...agents.map(a => a.logic_power || 0));
@@ -179,6 +182,40 @@ export default function MultiAgentConsole({ onDeploy }) {
           <DataFlowCanvas agents={agents} activeAgent={activeAgent} flowActivity={true} />
         </div>
 
+        {/* ── XP / progression strip ── */}
+        <div className="rounded-2xl border mb-3 px-4 py-3 flex items-center gap-4 flex-wrap"
+          style={{ borderColor: 'rgba(255,170,0,0.2)', background: 'rgba(255,170,0,0.04)' }}>
+          <div style={{ fontSize: '0.65rem', fontFamily: 'monospace', color: 'rgba(255,170,0,0.7)', fontWeight: 700, letterSpacing: '0.08em' }}>
+            ◈ 探员养成档案
+          </div>
+          {progression.map((p, i) => {
+            const lvl = getLevelFromXP(p.xp || 0);
+            const colors = ['#00e5ff','#ff6b6b','#a78bfa'];
+            const names = ['隼目','破心','幽灵'];
+            return (
+              <div key={i} className="flex items-center gap-1.5">
+                <div style={{ width:18, height:18, borderRadius:'50%', border:`1.5px solid ${colors[i]}`, background:`${colors[i]}18`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10 }}>
+                  {['👁️','🔥','💻'][i]}
+                </div>
+                <span style={{ color: colors[i], fontSize:'0.6rem', fontFamily:'monospace', fontWeight:700 }}>{names[i]}</span>
+                <span style={{ color:'rgba(255,255,255,0.35)', fontSize:'0.6rem', fontFamily:'monospace' }}>Lv.{lvl} · {p.xp||0}XP</span>
+              </div>
+            );
+          })}
+          {/* Dev test button — grant 100 XP to all */}
+          <button
+            onClick={() => {
+              const updated = progression.map(p => ({ ...p, xp: (p.xp || 0) + 100 }));
+              setProgression(updated);
+              saveProgression(updated);
+            }}
+            className="ml-auto text-xs px-2 py-0.5 rounded-lg border transition-all hover:opacity-80"
+            style={{ borderColor:'rgba(255,170,0,0.3)', color:'rgba(255,170,0,0.6)', background:'rgba(255,170,0,0.06)', fontFamily:'monospace' }}
+          >
+            +100 XP [测试]
+          </button>
+        </div>
+
         {/* ── Agent slot cards (3 columns on desktop, stacked on mobile) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           {agents.map((agent, i) => (
@@ -190,6 +227,7 @@ export default function MultiAgentConsole({ onDeploy }) {
               totalPool={300}
               onUpdate={updateAgent}
               onClick={() => setActiveAgent(i)}
+              xp={progression[i]?.xp || 0}
             />
           ))}
         </div>
