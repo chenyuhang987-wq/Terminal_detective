@@ -7,6 +7,7 @@ import ClueCard from '@/components/game/ClueCard';
 import EvidenceBoard from '@/components/game/EvidenceBoard';
 import GlitchOverlay from '@/components/game/GlitchOverlay';
 import BSoD from '@/components/game/BSoD';
+import AgentSynergyFX from '@/components/game/AgentSynergyFX';
 
 const PHASE_COLORS = Phase_Color_Map;
 
@@ -26,6 +27,16 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
   const [showBoard, setShowBoard] = useState(false);
   const [thoughtText, setThoughtText] = useState('');
   const [abortCtrl, setAbortCtrl] = useState(null);
+  const [synergyEvent, setSynergyEvent] = useState(null);
+
+  const triggerSynergy = useCallback((type, clue) => {
+    setSynergyEvent({
+      type,
+      clueIcon: clue?.visual_icon || '🔍',
+      clueKeyword: clue?.keyword || '未知线索',
+      id: Date.now(),
+    });
+  }, []);
 
   const terminalRef = useRef(null);
   const stressTimerRef = useRef(null);
@@ -188,10 +199,19 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
           if (clue) {
             addLine(`\n🔍 NEW EVIDENCE SECURED: ${clue.visual_icon} ${clue.keyword}`, 'success');
             addLine(`   └─ ${clue.description}`, 'clue-desc');
+            // Trigger multi-agent convergence FX
+            triggerSynergy('clue_converge', clue);
           }
         });
         setNewClueIds(prev => [...prev, ...newClues]);
         setTimeout(() => setNewClueIds(prev => prev.filter(id => !newClues.includes(id))), 3000);
+      }
+
+      // Cross-validate synergy: trigger when action involves presenting evidence or examining
+      const crossValidateActions = ['present_evidence', 'examine_clue', 'analyze_forensics', 'check_alibi'];
+      if (actionTag && crossValidateActions.includes(actionTag) && newState.unlocked_clues.length >= 2) {
+        const lastClue = caseData.clue_dictionary.find(c => newState.unlocked_clues.includes(c.clue_id));
+        setTimeout(() => triggerSynergy('cross_validate', lastClue), 600);
       }
 
       if (settlement.confusion_increase > 0) {
@@ -330,7 +350,10 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
       </div>
 
       {/* Main area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+
+        {/* Agent Synergy FX overlay */}
+        <AgentSynergyFX event={synergyEvent} />
 
         {/* Left: Terminal */}
         <div className="flex flex-col flex-1 min-w-0">
