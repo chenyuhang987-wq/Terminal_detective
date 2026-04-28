@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReAct_Enum, Legal_Actions_List, Phase_Color_Map, Case_Data_Lvl_01 } from '@/game/caseData';
+import MiniMap from '@/components/game/MiniMap';
 import { createInitialGameState, generateObservation, applySettlementResult, LocalStorage, pushCheckpoint, popCheckpoint, checkConflictClues } from '@/game/gameState';
 import { streamThinkSSE, getAction, settleAction, getNPCDialogue, judgeReport, branchCheck, parseActionTag } from '@/game/llmClient';
 import AIProcessingIndicator from '@/components/game/AIProcessingIndicator';
@@ -14,8 +15,9 @@ import GameOverScreen from '@/components/game/GameOverScreen';
 
 const PHASE_COLORS = Phase_Color_Map;
 
-export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBackToLobby }) {
-  const [gameState, setGameState] = useState(() => createInitialGameState(Case_Data_Lvl_01));
+export default function InvestigationTerminal({ agentStrategy, selectedCase, onGameEnd, onBackToLobby }) {
+  const caseDataResolved = selectedCase || Case_Data_Lvl_01;
+  const [gameState, setGameState] = useState(() => createInitialGameState(caseDataResolved));
   const [reactState, setReactState] = useState(ReAct_Enum.IDLE);
   const [terminalLines, setTerminalLines] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,7 +55,7 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
 
-  const caseData = Case_Data_Lvl_01;
+  const caseData = caseDataResolved;
   const phaseColor = PHASE_COLORS[reactState] || PHASE_COLORS.IDLE;
 
   const scrollToBottom = useCallback(() => {
@@ -482,6 +484,16 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
             ⏹ END
           </button>
         </div>
+      </div>
+
+      {/* MiniMap — floating top-right */}
+      <div style={{ position: 'absolute', top: 52, right: 8, zIndex: 30, pointerEvents: 'auto' }}>
+        <MiniMap
+          gameState={gameState}
+          caseData={caseData}
+          agentPath={agentPath}
+          accentColor={accentColor}
+        />
       </div>
 
       {/* Main area */}
