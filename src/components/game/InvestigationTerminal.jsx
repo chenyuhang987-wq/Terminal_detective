@@ -486,8 +486,8 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
         </div>
       </div>
 
-      {/* MiniMap — floating top-right */}
-      <div style={{ position: 'absolute', top: 52, right: 8, zIndex: 30, pointerEvents: 'auto' }}>
+      {/* MiniMap — floating bottom-right */}
+      <div style={{ position: 'fixed', bottom: 12, right: 12, zIndex: 30, pointerEvents: 'auto' }}>
         <MiniMap
           gameState={gameState}
           caseData={caseData}
