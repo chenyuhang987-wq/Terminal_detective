@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReAct_Enum, Legal_Actions_List, Phase_Color_Map, Case_Data_Lvl_01 } from '@/game/caseData';
-import { createInitialGameState, generateObservation, applySettlementResult, LocalStorage } from '@/game/gameState';
-import { streamThinkSSE, getAction, settleAction, getNPCDialogue, judgeReport, parseActionTag } from '@/game/llmClient';
+import { createInitialGameState, generateObservation, applySettlementResult, LocalStorage, pushCheckpoint, popCheckpoint, checkConflictClues } from '@/game/gameState';
+import { streamThinkSSE, getAction, settleAction, getNPCDialogue, judgeReport, branchCheck, parseActionTag } from '@/game/llmClient';
 import AIProcessingIndicator from '@/components/game/AIProcessingIndicator';
 import ClueCard from '@/components/game/ClueCard';
 import EvidenceBoard from '@/components/game/EvidenceBoard';
@@ -174,9 +174,21 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
         isIllegal: !isLegal
       });
 
-      // Apply results
-      const { newState, newClues } = applySettlementResult(gs, settlement);
+      // Apply results — pass agentStrategy for resistance/discount modifiers
+      const { newState, newClues } = applySettlementResult(gs, settlement, agentStrategy);
       newState.lastAction = actionTag;
+      newState.last_action = actionTag;
+
+      // Conflict dictionary check — extra confusion for mutually exclusive clues
+      if (checkConflictClues(newState.unlocked_clues, caseData.conflict_dictionary)) {
+        newState.confusion_score = Math.min(100, newState.confusion_score + 15);
+        addLine(`\n⚠ LOGIC CONFLICT DETECTED: Contradictory evidence in matrix. Confusion +15.`, 'warning');
+      }
+
+      // Push checkpoint at key zones
+      if (caseData.checkpoints?.includes(newState.current_zone)) {
+        newState.checkpoint_stack = pushCheckpoint(newState);
+      }
       newState.chat_history = [
         ...gs.chat_history,
         { role: 'assistant', content: `[THINK] ${fullThought}\n[ACTION] ${actionTag}` },
@@ -269,17 +281,41 @@ export default function InvestigationTerminal({ agentStrategy, onGameEnd, onBack
     setIsProcessing(true);
     setReactState(ReAct_Enum.REPORTING);
     try {
+      // First: check for absurd branch (wrong accusation)
+      const branch = await branchCheck({ playerReport: reportText, caseData });
+      if (branch?.is_absurd && branch?.branch_id) {
+        const branchData = caseData.branches?.[branch.branch_id];
+        if (branchData) {
+          addLine(`\n🎭 NARRATIVE COLLAPSE: ${branchData.text}`, 'trap');
+          addLine(`\n💀 AP penalty: -${branchData.impact?.ap_loss || 30}`, 'error');
+          setGameState(prev => ({
+            ...prev,
+            action_points_left: Math.max(0, prev.action_points_left - (branchData.impact?.ap_loss || 30)),
+            reputation: Math.max(0, prev.reputation - 25),
+          }));
+          setIsProcessing(false);
+          setReactState(ReAct_Enum.IDLE);
+          setReportMode(false);
+          return;
+        }
+      }
+
+      // Standard judge evaluation
       const result = await judgeReport({ playerReport: reportText, caseData });
       setJudgeResult(result);
       if (result.is_passed) {
-        addLine('\n🎉 CASE SOLVED! Congratulations, Architect!', 'success');
+        addLine('\n🎉 CASE SOLVED — ARCHITECT VICTORIOUS!', 'success');
+        addLine(`\n📋 Judge verdict [${result.score}]: ${result.critique}`, 'success');
       } else {
+        const apLoss = result.score === 'D' ? Math.floor(gameState.action_points_left * 0.5) : 3;
         setGameState(prev => ({
           ...prev,
-          action_points_left: Math.max(0, Math.floor(prev.action_points_left * 0.5)),
+          action_points_left: Math.max(0, prev.action_points_left - apLoss),
           reputation: Math.max(0, prev.reputation - 20),
+          confusion_score: Math.min(100, prev.confusion_score + 10),
         }));
-        addLine('\n⛔ REPORT REJECTED. AP penalized.', 'error');
+        addLine(`\n⛔ REPORT REJECTED [${result.score}]. AP -${apLoss}. Reputation -20.`, 'error');
+        addLine(`\n📋 Judge: ${result.critique}`, 'warning');
       }
     } finally {
       setIsProcessing(false);

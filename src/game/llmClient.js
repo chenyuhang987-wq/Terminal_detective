@@ -82,6 +82,12 @@ export async function judgeReport({ playerReport, caseData }) {
   return response.data;
 }
 
+// ── Branch Check ──────────────────────────────────────────────────────────
+export async function branchCheck({ playerReport, caseData }) {
+  const response = await invoke('branch_check', { playerReport, caseData });
+  return response.data;
+}
+
 // ── Summarize for Multi-Agent ─────────────────────────────────────────────
 export async function summarizeHistory({ history, agentName }) {
   const response = await invoke('summarize', { history, agentName });
