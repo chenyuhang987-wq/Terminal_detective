@@ -78,58 +78,145 @@ function StarField() {
   );
 }
 
+// ── Animated Magnifying Glass ────────────────────────────────────────────────
+function MagnifyingGlass() {
+  return (
+    <div className="flex justify-center mb-6">
+      <div style={{ position: 'relative', width: 100, height: 100, animation: 'mag-float 3s ease-in-out infinite' }}>
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <defs>
+            <filter id="glow-cyan">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glow-cyan-strong">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          {/* Outer pulsing ring */}
+          <circle cx="40" cy="40" r="30" fill="none" stroke="#00e5ff" strokeWidth="1"
+            strokeDasharray="6 4" opacity="0.35"
+            style={{ animation: 'mag-ring-spin 8s linear infinite', transformOrigin: '40px 40px' }} />
+
+          {/* Main lens circle */}
+          <circle cx="40" cy="40" r="22" fill="rgba(0,229,255,0.04)" stroke="#00e5ff" strokeWidth="2.5"
+            filter="url(#glow-cyan-strong)"
+            style={{ animation: 'mag-pulse 2s ease-in-out infinite' }} />
+
+          {/* Inner shimmer */}
+          <circle cx="40" cy="40" r="16" fill="none" stroke="#00e5ff" strokeWidth="0.8" opacity="0.25" />
+
+          {/* Question mark */}
+          <text x="40" y="47" textAnchor="middle" fontSize="20" fontWeight="bold"
+            fill="#00e5ff" filter="url(#glow-cyan)"
+            style={{ animation: 'mag-q-flicker 4s ease-in-out infinite', fontFamily: 'monospace' }}>?</text>
+
+          {/* Handle */}
+          <line x1="57" y1="57" x2="80" y2="82" stroke="#00e5ff" strokeWidth="5"
+            strokeLinecap="round" filter="url(#glow-cyan)" />
+          {/* Handle highlight */}
+          <line x1="57" y1="57" x2="80" y2="82" stroke="white" strokeWidth="1.5"
+            strokeLinecap="round" opacity="0.3" />
+
+          {/* Orbiting dot */}
+          <circle r="3" fill="#ff3aff" filter="url(#glow-cyan)"
+            style={{ animation: 'mag-orbit 2.5s linear infinite', transformOrigin: '40px 40px' }}>
+            <animateMotion dur="2.5s" repeatCount="indefinite"
+              path="M 40 14 A 26 26 0 1 1 39.9 14" />
+          </circle>
+
+          {/* Second orbiting dot (offset) */}
+          <circle r="2" fill="#00e5ff" opacity="0.7"
+            style={{ animation: 'mag-orbit2 3.5s linear infinite', transformOrigin: '40px 40px' }}>
+            <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.5s"
+              path="M 40 14 A 26 26 0 1 0 39.9 14" />
+          </circle>
+        </svg>
+
+        <style>{`
+          @keyframes mag-float {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50%       { transform: translateY(-10px) rotate(2deg); }
+          }
+          @keyframes mag-pulse {
+            0%, 100% { opacity: 0.85; }
+            50%       { opacity: 1; filter: drop-shadow(0 0 12px #00e5ff); }
+          }
+          @keyframes mag-ring-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+          }
+          @keyframes mag-q-flicker {
+            0%, 90%, 100% { opacity: 1; }
+            92%           { opacity: 0.2; }
+            94%           { opacity: 1; }
+            96%           { opacity: 0.4; }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
+}
+
+// ── Animated Title Letters ────────────────────────────────────────────────────
+function GlitchTitle() {
+  const title = 'TERMINAL  DETECTIVE';
+  return (
+    <h1
+      className="font-black leading-none mb-3 select-none"
+      style={{
+        fontSize: 'clamp(2rem, 6vw, 3.4rem)',
+        letterSpacing: '0.18em',
+        fontFamily: "'Courier New', monospace",
+      }}
+    >
+      {title.split('').map((ch, i) => (
+        <span
+          key={i}
+          style={{
+            color: '#ff3aff',
+            textShadow: '0 0 10px #ff3aff, 0 0 30px #ff3aff80, 0 0 60px #ff3aff30, 0 0 2px #fff',
+            display: 'inline-block',
+            animation: `title-letter-in 0.4s ${i * 0.045}s both, title-neon-flicker 6s ${i * 0.3 + 1}s ease-in-out infinite`,
+          }}
+        >
+          {ch === ' ' ? '\u00A0' : ch}
+        </span>
+      ))}
+      <style>{`
+        @keyframes title-letter-in {
+          from { opacity: 0; transform: translateY(-18px) scaleY(1.4); filter: blur(4px); }
+          to   { opacity: 1; transform: translateY(0) scaleY(1); filter: blur(0); }
+        }
+        @keyframes title-neon-flicker {
+          0%, 85%, 100% { opacity: 1; }
+          87%            { opacity: 0.15; }
+          89%            { opacity: 1; }
+          91%            { opacity: 0.35; }
+          93%            { opacity: 1; }
+        }
+      `}</style>
+    </h1>
+  );
+}
+
 // ── Neon Title ──────────────────────────────────────────────────────────────
 function NeonTitle() {
   return (
     <div className="text-center mb-1 select-none">
-      {/* Magnifying glass icon */}
-      <div className="flex justify-center mb-4">
-        <div style={{ position: 'relative', width: 80, height: 80 }}>
-          {/* Circle */}
-          <svg width="80" height="80" viewBox="0 0 80 80" style={{ position: 'absolute', top: 0, left: 0 }}>
-            <circle cx="32" cy="32" r="22" fill="none" stroke="#00e5ff" strokeWidth="3"
-              style={{ filter: 'drop-shadow(0 0 8px #00e5ff) drop-shadow(0 0 18px #00e5ff60)' }} />
-            {/* Question mark */}
-            <text x="32" y="38" textAnchor="middle" fontSize="18" fill="#00e5ff"
-              style={{ filter: 'drop-shadow(0 0 6px #00e5ff)' }}>?</text>
-            {/* Handle */}
-            <line x1="48" y1="48" x2="68" y2="70" stroke="#00e5ff" strokeWidth="4" strokeLinecap="round"
-              style={{ filter: 'drop-shadow(0 0 8px #00e5ff)' }} />
-            {/* Orbit arc */}
-            <path d="M 18 20 A 28 28 0 0 1 50 16" fill="none" stroke="#00e5ff" strokeWidth="1.5"
-              strokeDasharray="4 4"
-              style={{ filter: 'drop-shadow(0 0 4px #00e5ff)' }} />
-          </svg>
-        </div>
-      </div>
-
-      {/* TERMINAL DETECTIVE */}
-      <h1
-        className="font-black tracking-[0.18em] leading-none mb-3"
-        style={{
-          fontSize: 'clamp(2rem, 6vw, 3.5rem)',
-          color: '#ff3aff',
-          textShadow: [
-            '0 0 10px #ff3aff',
-            '0 0 30px #ff3aff80',
-            '0 0 60px #ff3aff40',
-            '0 0 4px #fff',
-            '0 0 1px #00e5ff',
-          ].join(', '),
-          letterSpacing: '0.18em',
-          fontFamily: "'Courier New', monospace",
-        }}
-      >
-        TERMINAL&nbsp;&nbsp;DETECTIVE
-      </h1>
+      <MagnifyingGlass />
+      <GlitchTitle />
 
       {/* LOGIC ARCHITECT */}
       <div
-        className="tracking-[0.55em] text-xs font-light mb-6"
+        className="text-xs font-light mb-6"
         style={{
-          color: 'rgba(200,230,255,0.55)',
+          color: 'rgba(200,230,255,0.5)',
           letterSpacing: '0.55em',
           fontFamily: "'Courier New', monospace",
+          animation: 'logic-fade-in 1.2s 0.8s both',
         }}
       >
         LOGIC&nbsp;&nbsp;ARCHITECT
@@ -142,10 +229,18 @@ function NeonTitle() {
           color: '#00e5ff',
           textShadow: '0 0 8px #00e5ff',
           fontFamily: "'Courier New', monospace",
+          animation: 'logic-fade-in 0.8s 1.5s both',
         }}
       >
         [探员配置面板]
       </div>
+
+      <style>{`
+        @keyframes logic-fade-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
