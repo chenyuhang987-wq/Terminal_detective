@@ -196,10 +196,8 @@ export default function InvestigationTerminal({ agentStrategy, selectedCase, onG
       const isLegal = actionTag && Legal_Actions_List.includes(actionTag);
 
       if (actionTag) {
-        if (actionTag) {
         const actionMsg = lang === 'zh' ? `▶ 行动已下达：[${actionTag.toUpperCase()}]` : `▶ ACTION ISSUED: [${actionTag.toUpperCase()}]`;
         addLine(`\n${actionMsg}`, isLegal ? 'action' : 'error');
-      }
       }
 
       // ── Settlement ────────────────────────────────────────────────────

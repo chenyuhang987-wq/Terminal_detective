@@ -1,6 +1,6 @@
 import React from 'react';
-import MultiAgentConsole from '@/components/game/MultiAgentConsole.jsx';
+import HolographicLobby from '@/components/game/HolographicLobby.jsx';
 
 export default function AgentLobby({ onDeploy }) {
-  return <MultiAgentConsole onDeploy={onDeploy} />;
+  return <HolographicLobby onDeploy={onDeploy} />;
 }
