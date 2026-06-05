@@ -3,6 +3,7 @@ import {
   getLevelFromXP, getXPToNextLevel, SKILL_TREES, LEVEL_XP_TABLE, MAX_LEVEL,
   loadProgression, saveProgression, addXPAll,
 } from '@/game/agentProgression';
+import LevelUpModal from '@/components/game/LevelUpModal';
 
 // ── XP formula ────────────────────────────────────────────────────────────────
 const SCORE_XP = { S: 300, A: 220, B: 150, C: 80, D: 30 };
@@ -104,12 +105,13 @@ function Counter({ target, duration = 1200, color = '#00e5ff', suffix = '' }) {
 }
 
 // ── XP Bar with animated fill + level-up flash ────────────────────────────────
-function XPBar({ oldXP, newXP, color, agentIdx, agentName, agentIcon, delay = 0 }) {
+function XPBar({ oldXP, newXP, color, agentIdx, agentName, agentIcon, delay = 0, onLevelUp }) {
   const [displayed, setDisplayed] = useState(oldXP);
   const [levelUps, setLevelUps] = useState([]);
   const [flash, setFlash] = useState(false);
   const [particleTrigger, setParticleTrigger] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [barFlash, setBarFlash] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), delay);
@@ -126,7 +128,6 @@ function XPBar({ oldXP, newXP, color, agentIdx, agentName, agentIcon, delay = 0 
     }
     setLevelUps(crossings);
 
-    // Delay bar animation slightly after mount
     const startTimer = setTimeout(() => {
       let start = null;
       const dur = 2200;
@@ -138,7 +139,18 @@ function XPBar({ oldXP, newXP, color, agentIdx, agentName, agentIcon, delay = 0 
         if (pct < 1) requestAnimationFrame(step);
         else {
           setFlash(true);
-          if (crossings.length > 0) setParticleTrigger(t => t + 1);
+          if (crossings.length > 0) {
+            setParticleTrigger(t => t + 1);
+            // Bar flash white burst then fade
+            setBarFlash(true);
+            setTimeout(() => setBarFlash(false), 600);
+            // Notify parent to queue level-up modal
+            onLevelUp?.({
+              agentIdx, agentName, agentIcon, color,
+              oldLevel: getLevelFromXP(oldXP),
+              newLevel: getLevelFromXP(newXP),
+            });
+          }
         }
       };
       requestAnimationFrame(step);
@@ -204,19 +216,29 @@ function XPBar({ oldXP, newXP, color, agentIdx, agentName, agentIcon, delay = 0 
             <div style={{
               height: '100%',
               width: isMax ? '100%' : `${pct}%`,
-              background: `linear-gradient(to right, ${color}50, ${color})`,
-              boxShadow: `0 0 10px ${color}80`,
-              transition: 'width 0.08s linear',
+              background: barFlash
+                ? 'linear-gradient(to right, #fff, #fff)'
+                : `linear-gradient(to right, ${color}50, ${color})`,
+              boxShadow: barFlash ? `0 0 24px #fff` : `0 0 10px ${color}80`,
+              transition: barFlash ? 'background 0.1s, box-shadow 0.1s' : 'width 0.08s linear',
               borderRadius: 4,
             }}/>
             {/* Shine sweep */}
-            {!isMax && (
+            {!isMax && !barFlash && (
               <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                 background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
                 transform: `translateX(${pct - 100}%)`,
                 transition: 'transform 0.08s linear',
                 pointerEvents: 'none',
+              }}/>
+            )}
+            {/* Level-up overflow flash */}
+            {barFlash && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: `radial-gradient(circle, #fff 0%, ${color} 50%, transparent 100%)`,
+                animation: 'bar-overflow 0.6s ease-out forwards',
               }}/>
             )}
           </div>
@@ -364,6 +386,22 @@ export default function GameOverScreen({ judgeResult, gameState, caseData, agent
       setPhase('xp');
     }, 1400);
     return () => clearTimeout(t);
+  }, []);
+
+  // Level-up modal queue
+  const [modalQueue, setModalQueue] = useState([]);
+  const [currentModal, setCurrentModal] = useState(null);
+  const queueRef = useRef([]);
+
+  const enqueueModal = useCallback((event) => {
+    queueRef.current.push(event);
+    // If nothing showing, pop immediately
+    setCurrentModal(prev => prev === null ? queueRef.current.shift() : prev);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    const next = queueRef.current.shift() || null;
+    setCurrentModal(next);
   }, []);
 
   const agentNames = ['隼目', '破心', '幽灵'];
@@ -535,6 +573,7 @@ export default function GameOverScreen({ judgeResult, gameState, caseData, agent
                 agentIcon={agentIcons[i]} color={agentColors[i]}
                 oldXP={oldProg[i]?.xp || 0} newXP={newProg[i]?.xp || 0}
                 delay={i * 350}
+                onLevelUp={enqueueModal}
               />
             ))}
           </div>
@@ -600,6 +639,9 @@ export default function GameOverScreen({ judgeResult, gameState, caseData, agent
         </div>
       </div>
 
+      {/* Level-up modal queue */}
+      <LevelUpModal event={currentModal} onClose={handleModalClose} />
+
       <style>{`
         @keyframes go-in {
           from { opacity: 0; transform: translateY(16px); }
@@ -620,6 +662,11 @@ export default function GameOverScreen({ judgeResult, gameState, caseData, agent
         @keyframes badge-pulse {
           0%, 100% { transform: scale(1); }
           50%       { transform: scale(1.18); }
+        }
+        @keyframes bar-overflow {
+          0%   { opacity: 1; transform: scaleX(1); }
+          60%  { opacity: 0.8; transform: scaleX(1.05); }
+          100% { opacity: 0; transform: scaleX(1.1); }
         }
       `}</style>
     </div>
