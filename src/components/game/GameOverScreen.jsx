@@ -663,11 +663,6 @@ export default function GameOverScreen({ judgeResult, gameState, caseData, agent
           0%, 100% { transform: scale(1); }
           50%       { transform: scale(1.18); }
         }
-        @keyframes bar-overflow {
-          0%   { opacity: 1; transform: scaleX(1); }
-          60%  { opacity: 0.8; transform: scaleX(1.05); }
-          100% { opacity: 0; transform: scaleX(1.1); }
-        }
       `}</style>
     </div>
   );
