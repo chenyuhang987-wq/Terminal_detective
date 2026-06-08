@@ -3,6 +3,7 @@ import { useLang } from '@/lib/lang.jsx';
 import { LocalStorage } from '@/game/gameState';
 import { DEFAULT_AGENT_CONFIG } from '@/game/caseData';
 import { loadProgression, getLevelFromXP, getXPToNextLevel } from '@/game/agentProgression';
+import SkillTreePanel from '@/components/game/SkillTreePanel';
 
 // ── Agent definitions ─────────────────────────────────────────────────────────
 const AGENT_DEFS = [
@@ -581,8 +582,9 @@ function HoloStage({ agents, selectedIdx, onSelect, accentColor, progression }) 
   );
 }
 
-// ── Right: Attribute Config ───────────────────────────────────────────────────
-function AttributePanel({ agent, agentDef, onUpdate }) {
+// ── Right: Attribute Config + Skill Tree ─────────────────────────────────────
+function AttributePanel({ agent, agentDef, agentIdx, onUpdate }) {
+  const [tab, setTab] = useState('attrs'); // 'attrs' | 'skills'
   const attrs = [
     { key: 'logic_power', label: 'LOGIC POWER', labelZh: '逻辑强度', color: '#00e5ff', max: 100 },
     { key: 'observation_focus', label: 'OBSERVATION', labelZh: '观察专注', color: '#a78bfa', max: 100 },
@@ -591,62 +593,69 @@ function AttributePanel({ agent, agentDef, onUpdate }) {
     { key: 'hack_level', label: 'HACK LEVEL', labelZh: '黑客等级', color: '#ff6b35', max: 100 },
   ];
 
+  const tabs = [
+    { key: 'attrs',  label: '属性配置', icon: '⚙️' },
+    { key: 'skills', label: '技能树',   icon: '🌐' },
+  ];
+
   return (
     <div style={{
-      width: 230, flexShrink: 0, padding: '12px 12px 12px 0',
+      width: 300, flexShrink: 0, padding: '12px 12px 12px 0',
       display: 'flex', flexDirection: 'column', gap: 10,
     }}>
       <div style={{
         border: `1px solid ${agentDef.color}35`, borderRadius: 12, overflow: 'hidden',
         background: 'rgba(0,8,24,0.85)', backdropFilter: 'blur(10px)',
-        flex: 1,
+        flex: 1, display: 'flex', flexDirection: 'column',
       }}>
-        {/* Header */}
-        <div style={{
-          padding: '7px 12px', borderBottom: `1px solid ${agentDef.color}20`,
-          background: `${agentDef.color}07`,
-        }}>
-          <div style={{ fontSize: '0.52rem', color: '#00e5ff', fontWeight: 700, letterSpacing: '0.12em', fontFamily: 'monospace', marginBottom: 5 }}>
-            ATTRIBUTE CONFIG · 属性配置
-          </div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            padding: '4px 8px', border: `1px solid ${agentDef.color}45`,
-            borderRadius: 6, background: `${agentDef.color}12`,
-          }}>
+        {/* Agent identity header */}
+        <div style={{ padding: '7px 12px', borderBottom: `1px solid ${agentDef.color}20`, background: `${agentDef.color}07` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
             <span style={{ fontSize: 16 }}>{agentDef.icon}</span>
             <div>
               <div style={{ fontSize: '0.6rem', color: agentDef.color, fontWeight: 900, fontFamily: 'monospace' }}>{agentDef.id}</div>
               <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{agentDef.roleZh}</div>
             </div>
           </div>
+          {/* Tab bar */}
+          <div style={{ display: 'flex', gap: 4 }}>
+            {tabs.map(t => (
+              <button key={t.key} onClick={() => setTab(t.key)} style={{
+                flex: 1, padding: '5px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                fontFamily: 'monospace', fontSize: '0.5rem', fontWeight: 700,
+                background: tab === t.key ? agentDef.color + '22' : 'rgba(255,255,255,0.04)',
+                color: tab === t.key ? agentDef.color : 'rgba(255,255,255,0.35)',
+                borderBottom: `2px solid ${tab === t.key ? agentDef.color : 'transparent'}`,
+                transition: 'all 0.2s',
+              }}>
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Attrs */}
-        <div style={{ padding: '12px 12px' }}>
-          {attrs.map(attr => (
-            <AttrSlider
-              key={attr.key}
-              label={attr.label} labelZh={attr.labelZh}
-              value={agent?.[attr.key] || 0} max={attr.max}
-              color={attr.color} isPercent={attr.isPercent}
-              onChange={val => onUpdate({ ...agent, [attr.key]: val })}
-            />
-          ))}
-
-          {/* Trait card */}
-          <div style={{
-            marginTop: 8, padding: '8px 10px',
-            border: `1px solid ${agentDef.color}25`, borderRadius: 8,
-            background: `${agentDef.color}07`,
-          }}>
-            <div style={{ fontSize: '0.48rem', color: agentDef.color, fontWeight: 700, fontFamily: 'monospace', marginBottom: 4 }}>
-              ◎ AGENT TRAIT
-            </div>
-            <div style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace', lineHeight: 1.55 }}>
-              {agentDef.desc}
-            </div>
-          </div>
+        {/* Tab content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+          {tab === 'attrs' && (
+            <>
+              {attrs.map(attr => (
+                <AttrSlider
+                  key={attr.key}
+                  label={attr.label} labelZh={attr.labelZh}
+                  value={agent?.[attr.key] || 0} max={attr.max}
+                  color={attr.color} isPercent={attr.isPercent}
+                  onChange={val => onUpdate({ ...agent, [attr.key]: val })}
+                />
+              ))}
+              <div style={{ marginTop: 8, padding: '8px 10px', border: `1px solid ${agentDef.color}25`, borderRadius: 8, background: `${agentDef.color}07` }}>
+                <div style={{ fontSize: '0.48rem', color: agentDef.color, fontWeight: 700, fontFamily: 'monospace', marginBottom: 4 }}>◎ AGENT TRAIT</div>
+                <div style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace', lineHeight: 1.55 }}>{agentDef.desc}</div>
+              </div>
+            </>
+          )}
+          {tab === 'skills' && (
+            <SkillTreePanel agentIdx={agentIdx} />
+          )}
         </div>
       </div>
     </div>
@@ -853,6 +862,7 @@ export default function HolographicLobby({ onDeploy }) {
         <AttributePanel
           agent={agents[selectedIdx]}
           agentDef={AGENT_DEFS[selectedIdx]}
+          agentIdx={selectedIdx}
           onUpdate={updateAgent}
         />
       </div>
