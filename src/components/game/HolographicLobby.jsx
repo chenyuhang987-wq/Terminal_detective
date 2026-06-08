@@ -453,9 +453,9 @@ function HoloStage({ agents, selectedIdx, onSelect, accentColor, progression }) 
   const lvls = AGENT_DEFS.map((_, i) => getLevelFromXP(progression[i]?.xp || 0));
   const [tick, setTick] = useState(0);
   useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 50); return () => clearInterval(id); }, []);
-  const synergy = Math.min(50, Math.round(
+  const synergy = Math.round(
     (agents.reduce((s, a) => s + (a.logic_power || 0) + (a.observation_focus || 0) + (a.confusion_resistance || 0), 0) / (3 * 300)) * 100
-  ));
+  );
 
   return (
     <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
