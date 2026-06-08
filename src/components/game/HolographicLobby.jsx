@@ -448,14 +448,24 @@ function TeamRosterPanel({ agents, selectedIdx, onSelect, progression, onPriorit
   );
 }
 
+// ── Synergy calculation (shared) ──────────────────────────────────────────────
+// Each attr contributes a weight to synergy: higher = more "load" on the team
+// Total possible = 3 agents × (100+100+100+30+100) = 3×430 = 1290 → maps to 0-100%
+function calcSynergy(agents) {
+  const total = agents.reduce((s, a) =>
+    s + (a.logic_power || 0) + (a.observation_focus || 0) +
+    (a.confusion_resistance || 0) + (a.ap_cost_discount || 0) +
+    (a.hack_level || 0), 0);
+  return Math.round((total / (3 * 430)) * 100);
+}
+
 // ── Center: Holographic Stage ─────────────────────────────────────────────────
 function HoloStage({ agents, selectedIdx, onSelect, accentColor, progression }) {
   const lvls = AGENT_DEFS.map((_, i) => getLevelFromXP(progression[i]?.xp || 0));
   const [tick, setTick] = useState(0);
   useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 50); return () => clearInterval(id); }, []);
-  const synergy = Math.round(
-    (agents.reduce((s, a) => s + (a.logic_power || 0) + (a.observation_focus || 0) + (a.confusion_resistance || 0), 0) / (3 * 300)) * 100
-  );
+  const synergy = calcSynergy(agents);
+  const synergyOver = synergy > 50;
 
   return (
     <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
@@ -564,12 +574,38 @@ function HoloStage({ agents, selectedIdx, onSelect, accentColor, progression }) 
         position: 'absolute', bottom: 12, left: 12, zIndex: 5,
         fontFamily: 'monospace', fontSize: '0.48rem',
       }}>
-        <div style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 2 }}>TEAM SYNERGY</div>
-        <div style={{ color: accentColor, fontSize: '0.85rem', fontWeight: 900, textShadow: `0 0 8px ${accentColor}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+          <span style={{ color: 'rgba(255,255,255,0.3)' }}>TEAM SYNERGY</span>
+          {synergyOver && (
+            <span style={{
+              fontSize: '0.4rem', color: '#ff3860', border: '1px solid #ff386060',
+              borderRadius: 3, padding: '0 4px', background: '#ff386015',
+              animation: 'synergy-warn 1s ease-in-out infinite',
+            }}>⚠ OVERLOAD</span>
+          )}
+        </div>
+        <div style={{
+          color: synergyOver ? '#ff3860' : accentColor,
+          fontSize: '0.85rem', fontWeight: 900,
+          textShadow: `0 0 8px ${synergyOver ? '#ff3860' : accentColor}`,
+          transition: 'color 0.3s, text-shadow 0.3s',
+        }}>
           {synergy}%
         </div>
-        <div style={{ width: 70, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, marginTop: 2 }}>
-          <div style={{ width: `${synergy}%`, height: '100%', background: accentColor, borderRadius: 2, boxShadow: `0 0 6px ${accentColor}` }}/>
+        <div style={{ width: 90, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2, marginTop: 3, position: 'relative' }}>
+          {/* 50% threshold marker */}
+          <div style={{ position: 'absolute', left: '50%', top: -2, bottom: -2, width: 1, background: 'rgba(255,255,255,0.3)', zIndex: 1 }}/>
+          <div style={{
+            width: `${Math.min(synergy, 100)}%`, height: '100%', borderRadius: 2,
+            background: synergyOver
+              ? 'linear-gradient(to right, #ff6600, #ff3860)'
+              : `linear-gradient(to right, ${accentColor}80, ${accentColor})`,
+            boxShadow: `0 0 6px ${synergyOver ? '#ff3860' : accentColor}`,
+            transition: 'width 0.3s ease, background 0.3s ease',
+          }}/>
+        </div>
+        <div style={{ fontSize: '0.38rem', color: synergyOver ? '#ff386090' : 'rgba(255,255,255,0.2)', marginTop: 3, transition: 'color 0.3s' }}>
+          {synergyOver ? '超载！请降低探员属性点' : '≤50% 可部署'}
         </div>
       </div>
 
@@ -691,9 +727,10 @@ function StatusBar() {
 }
 
 // ── Deploy Controls ───────────────────────────────────────────────────────────
-function DeployControls({ onDeploy, onSave, onLoad }) {
+function DeployControls({ onDeploy, onSave, onLoad, synergyOver }) {
   const [deploying, setDeploying] = useState(false);
   const handleDeploy = async () => {
+    if (synergyOver) return;
     setDeploying(true);
     await new Promise(r => setTimeout(r, 700));
     onDeploy();
@@ -728,29 +765,44 @@ function DeployControls({ onDeploy, onSave, onLoad }) {
       ))}
 
       {/* Main deploy */}
-      <button onClick={handleDeploy} disabled={deploying} style={{
-        flex: 1, maxWidth: 320, marginLeft: 'auto',
-        padding: '11px 24px', borderRadius: 10,
-        border: `2px solid ${deploying ? 'rgba(0,229,255,0.3)' : '#00e5ffaa'}`,
-        background: deploying
-          ? 'rgba(0,229,255,0.15)'
-          : 'linear-gradient(135deg, rgba(0,80,160,0.7) 0%, rgba(0,200,255,0.45) 100%)',
-        color: '#fff', cursor: deploying ? 'wait' : 'pointer',
-        fontFamily: 'monospace', fontWeight: 900, fontSize: '0.78rem', letterSpacing: '0.2em',
-        textShadow: '0 0 12px rgba(0,229,255,0.9)',
-        boxShadow: '0 0 24px rgba(0,200,255,0.35), 0 0 50px rgba(0,200,255,0.1)',
-        transition: 'all 0.3s', position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to right, transparent, rgba(0,229,255,0.12), transparent)',
-          animation: 'btn-shimmer 2.2s linear infinite',
-        }}/>
+      <button
+        onClick={handleDeploy}
+        disabled={deploying || synergyOver}
+        title={synergyOver ? '协同值超载（>50%），请降低探员属性后再部署' : ''}
+        style={{
+          flex: 1, maxWidth: 320, marginLeft: 'auto',
+          padding: '11px 24px', borderRadius: 10,
+          border: `2px solid ${synergyOver ? '#ff386070' : deploying ? 'rgba(0,229,255,0.3)' : '#00e5ffaa'}`,
+          background: synergyOver
+            ? 'rgba(255,56,96,0.12)'
+            : deploying
+            ? 'rgba(0,229,255,0.15)'
+            : 'linear-gradient(135deg, rgba(0,80,160,0.7) 0%, rgba(0,200,255,0.45) 100%)',
+          color: synergyOver ? '#ff3860' : '#fff',
+          cursor: synergyOver ? 'not-allowed' : deploying ? 'wait' : 'pointer',
+          fontFamily: 'monospace', fontWeight: 900, fontSize: '0.78rem', letterSpacing: '0.2em',
+          textShadow: synergyOver ? '0 0 12px rgba(255,56,96,0.9)' : '0 0 12px rgba(0,229,255,0.9)',
+          boxShadow: synergyOver
+            ? '0 0 24px rgba(255,56,96,0.25)'
+            : '0 0 24px rgba(0,200,255,0.35), 0 0 50px rgba(0,200,255,0.1)',
+          transition: 'all 0.3s', position: 'relative', overflow: 'hidden',
+          opacity: synergyOver ? 0.85 : 1,
+        }}>
+        {!synergyOver && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to right, transparent, rgba(0,229,255,0.12), transparent)',
+            animation: 'btn-shimmer 2.2s linear infinite',
+          }}/>
+        )}
         <span style={{ position: 'relative', zIndex: 1 }}>
-          {deploying ? '⟳  DEPLOYING...' : '▶  DEPLOY AGENTS · 部署探员'}
+          {synergyOver ? '⚠ SYNERGY OVERLOAD · 协同值超载' : deploying ? '⟳  DEPLOYING...' : '▶  DEPLOY AGENTS · 部署探员'}
         </span>
       </button>
-      <style>{`@keyframes btn-shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}`}</style>
+      <style>{`
+        @keyframes btn-shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+        @keyframes synergy-warn{0%,100%{opacity:1}50%{opacity:0.4}}
+      `}</style>
     </div>
   );
 }
@@ -774,6 +826,9 @@ export default function HolographicLobby({ onDeploy }) {
   const updatePriority = useCallback((idx, list) => {
     setAgents(prev => prev.map((a, i) => i === idx ? { ...a, priority_list: list } : a));
   }, []);
+
+  const synergy = calcSynergy(agents);
+  const synergyOver = synergy > 50;
 
   const handleDeploy = () => {
     LocalStorage.saveTeamConfig(agents);
@@ -871,6 +926,7 @@ export default function HolographicLobby({ onDeploy }) {
         onDeploy={handleDeploy}
         onSave={() => LocalStorage.saveTeamConfig(agents)}
         onLoad={() => { const s = LocalStorage.loadTeamConfig(); if (s) setAgents(s); }}
+        synergyOver={calcSynergy(agents) > 50}
       />
     </div>
   );
