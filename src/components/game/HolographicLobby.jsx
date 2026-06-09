@@ -344,27 +344,49 @@ function PriorityList({ priorityList, onChange }) {
 
 // ── Attribute Slider Row ──────────────────────────────────────────────────────
 function AttrSlider({ label, labelZh, value, max, color, isPercent, onChange }) {
+  const step = isPercent ? 1 : 1;
+  const dec = () => onChange(Math.max(0, value - step));
+  const inc = () => onChange(Math.min(max, value + step));
+
+  const btnStyle = (disabled) => ({
+    width: 20, height: 20, borderRadius: 4, border: `1px solid ${color}50`,
+    background: disabled ? 'rgba(255,255,255,0.04)' : `${color}18`,
+    color: disabled ? 'rgba(255,255,255,0.2)' : color,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: 'monospace', fontSize: '0.7rem', fontWeight: 900,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0, lineHeight: 1,
+    transition: 'all 0.15s',
+    boxShadow: disabled ? 'none' : `0 0 6px ${color}30`,
+  });
+
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
         <div>
           <div style={{ fontSize: '0.48rem', fontWeight: 700, color, fontFamily: 'monospace', letterSpacing: '0.05em' }}>{label}</div>
           <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>{labelZh}</div>
         </div>
-        <div style={{ fontSize: '0.78rem', fontWeight: 900, color, fontFamily: 'monospace', textShadow: `0 0 8px ${color}` }}>
-          {isPercent ? `${value}%` : `${value}`}
+        {/* Value + −/+ buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <button style={btnStyle(value <= 0)} onClick={dec} onMouseEnter={e => { if (value > 0) e.currentTarget.style.background = `${color}35`; }} onMouseLeave={e => { e.currentTarget.style.background = value <= 0 ? 'rgba(255,255,255,0.04)' : `${color}18`; }}>−</button>
+          <div style={{ minWidth: 36, textAlign: 'center', fontSize: '0.78rem', fontWeight: 900, color, fontFamily: 'monospace', textShadow: `0 0 8px ${color}` }}>
+            {isPercent ? `${value}%` : `${value}`}
+          </div>
+          <button style={btnStyle(value >= max)} onClick={inc} onMouseEnter={e => { if (value < max) e.currentTarget.style.background = `${color}35`; }} onMouseLeave={e => { e.currentTarget.style.background = value >= max ? 'rgba(255,255,255,0.04)' : `${color}18`; }}>+</button>
         </div>
       </div>
+      {/* Track */}
       <div style={{ position: 'relative', height: 8 }}>
         <div style={{ height: '100%', borderRadius: 4, background: 'rgba(255,255,255,0.07)' }}/>
         <div style={{
           position: 'absolute', top: 0, left: 0,
-          width: `${isPercent ? (value / max) * 100 : value}%`,
+          width: `${(value / max) * 100}%`,
           height: '100%', borderRadius: 4,
           background: `linear-gradient(to right, ${color}55, ${color})`,
           boxShadow: `0 0 8px ${color}80`, transition: 'width 0.2s ease',
         }}/>
-        <input type="range" min="0" max={max} value={value}
+        <input type="range" min="0" max={max} value={value} step={step}
           onChange={e => onChange(Number(e.target.value))}
           style={{
             position: 'absolute', top: -2, left: 0, width: '100%', height: 12,
