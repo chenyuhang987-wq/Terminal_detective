@@ -344,20 +344,31 @@ function PriorityList({ priorityList, onChange }) {
 
 // ── Attribute Slider Row ──────────────────────────────────────────────────────
 function AttrSlider({ label, labelZh, value, max, color, isPercent, onChange }) {
-  const step = isPercent ? 1 : 1;
-  const dec = () => onChange(Math.max(0, value - step));
-  const inc = () => onChange(Math.min(max, value + step));
+  const [popDec, setPopDec] = useState(false);
+  const [popInc, setPopInc] = useState(false);
+  const [valFlash, setValFlash] = useState(false);
 
-  const btnStyle = (disabled) => ({
-    width: 20, height: 20, borderRadius: 4, border: `1px solid ${color}50`,
-    background: disabled ? 'rgba(255,255,255,0.04)' : `${color}18`,
-    color: disabled ? 'rgba(255,255,255,0.2)' : color,
+  const trigger = (setPop) => {
+    setPop(true);
+    setValFlash(true);
+    setTimeout(() => { setPop(false); setValFlash(false); }, 220);
+  };
+
+  const dec = () => { if (value > 0) { onChange(Math.max(0, value - 1)); trigger(setPopDec); } };
+  const inc = () => { if (value < max) { onChange(Math.min(max, value + 1)); trigger(setPopInc); } };
+
+  const btnBase = (disabled, popped) => ({
+    width: 24, height: 24, borderRadius: 5,
+    border: `1px solid ${disabled ? 'rgba(255,255,255,0.1)' : color + '60'}`,
+    background: popped ? `${color}45` : disabled ? 'rgba(255,255,255,0.03)' : `${color}18`,
+    color: disabled ? 'rgba(255,255,255,0.18)' : color,
     cursor: disabled ? 'not-allowed' : 'pointer',
-    fontFamily: 'monospace', fontSize: '0.7rem', fontWeight: 900,
+    fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 900,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0, lineHeight: 1,
-    transition: 'all 0.15s',
-    boxShadow: disabled ? 'none' : `0 0 6px ${color}30`,
+    flexShrink: 0, lineHeight: 1, userSelect: 'none',
+    transform: popped ? 'scale(0.82)' : 'scale(1)',
+    transition: 'all 0.12s cubic-bezier(.22,1,.36,1)',
+    boxShadow: popped ? `0 0 12px ${color}80` : disabled ? 'none' : `0 0 5px ${color}25`,
   });
 
   return (
@@ -367,31 +378,35 @@ function AttrSlider({ label, labelZh, value, max, color, isPercent, onChange }) 
           <div style={{ fontSize: '0.48rem', fontWeight: 700, color, fontFamily: 'monospace', letterSpacing: '0.05em' }}>{label}</div>
           <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>{labelZh}</div>
         </div>
-        {/* Value + −/+ buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <button style={btnStyle(value <= 0)} onClick={dec} onMouseEnter={e => { if (value > 0) e.currentTarget.style.background = `${color}35`; }} onMouseLeave={e => { e.currentTarget.style.background = value <= 0 ? 'rgba(255,255,255,0.04)' : `${color}18`; }}>−</button>
-          <div style={{ minWidth: 36, textAlign: 'center', fontSize: '0.78rem', fontWeight: 900, color, fontFamily: 'monospace', textShadow: `0 0 8px ${color}` }}>
-            {isPercent ? `${value}%` : `${value}`}
+        {/* − value + */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button style={btnBase(value <= 0, popDec)} onClick={dec}>−</button>
+          <div style={{
+            minWidth: 38, textAlign: 'center',
+            fontSize: '0.82rem', fontWeight: 900, color, fontFamily: 'monospace',
+            textShadow: valFlash ? `0 0 14px ${color}` : `0 0 6px ${color}80`,
+            transform: valFlash ? 'scale(1.15)' : 'scale(1)',
+            transition: 'transform 0.15s cubic-bezier(.22,1,.36,1), text-shadow 0.15s',
+          }}>
+            {isPercent ? `${value}%` : value}
           </div>
-          <button style={btnStyle(value >= max)} onClick={inc} onMouseEnter={e => { if (value < max) e.currentTarget.style.background = `${color}35`; }} onMouseLeave={e => { e.currentTarget.style.background = value >= max ? 'rgba(255,255,255,0.04)' : `${color}18`; }}>+</button>
+          <button style={btnBase(value >= max, popInc)} onClick={inc}>+</button>
         </div>
       </div>
       {/* Track */}
-      <div style={{ position: 'relative', height: 8 }}>
+      <div style={{ position: 'relative', height: 7, borderRadius: 4 }}>
         <div style={{ height: '100%', borderRadius: 4, background: 'rgba(255,255,255,0.07)' }}/>
         <div style={{
           position: 'absolute', top: 0, left: 0,
           width: `${(value / max) * 100}%`,
           height: '100%', borderRadius: 4,
           background: `linear-gradient(to right, ${color}55, ${color})`,
-          boxShadow: `0 0 8px ${color}80`, transition: 'width 0.2s ease',
+          boxShadow: `0 0 8px ${color}70`,
+          transition: 'width 0.18s ease',
         }}/>
-        <input type="range" min="0" max={max} value={value} step={step}
+        <input type="range" min="0" max={max} value={value}
           onChange={e => onChange(Number(e.target.value))}
-          style={{
-            position: 'absolute', top: -2, left: 0, width: '100%', height: 12,
-            opacity: 0, cursor: 'pointer', zIndex: 2,
-          }}
+          style={{ position: 'absolute', top: -2, left: 0, width: '100%', height: 12, opacity: 0, cursor: 'pointer', zIndex: 2 }}
         />
       </div>
     </div>
@@ -749,14 +764,30 @@ function StatusBar() {
 }
 
 // ── Deploy Controls ───────────────────────────────────────────────────────────
-function DeployControls({ onDeploy, onSave, onLoad, synergyOver }) {
+function DeployControls({ onDeploy, onSave, onLoad, synergyOver, synergy }) {
   const [deploying, setDeploying] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const prevSynergy = useRef(synergy);
+
+  // Flash animation whenever synergy changes
+  useEffect(() => {
+    if (prevSynergy.current !== synergy) {
+      setFlash(true);
+      const t = setTimeout(() => setFlash(false), 350);
+      prevSynergy.current = synergy;
+      return () => clearTimeout(t);
+    }
+  }, [synergy]);
+
   const handleDeploy = async () => {
     if (synergyOver) return;
     setDeploying(true);
     await new Promise(r => setTimeout(r, 700));
     onDeploy();
   };
+
+  const c = synergyOver ? '#ff3860' : '#00e5ff';
+  const barPct = Math.min(synergy, 100);
 
   const btns = [
     { label: 'SAVE\n保存', icon: '💾', onClick: onSave, color: '#00e5ff' },
@@ -768,7 +799,9 @@ function DeployControls({ onDeploy, onSave, onLoad, synergyOver }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px',
-      borderTop: '1px solid rgba(0,229,255,0.15)', background: 'rgba(0,0,0,0.75)', flexShrink: 0,
+      borderTop: `1px solid ${synergyOver ? '#ff386040' : 'rgba(0,229,255,0.15)'}`,
+      background: synergyOver ? 'rgba(30,0,8,0.85)' : 'rgba(0,0,0,0.75)',
+      flexShrink: 0, transition: 'background 0.4s, border-color 0.4s',
     }}>
       {btns.map((b, i) => (
         <button key={i} onClick={b.onClick} style={{
@@ -786,13 +819,71 @@ function DeployControls({ onDeploy, onSave, onLoad, synergyOver }) {
         </button>
       ))}
 
+      {/* ── Inline TEAM SYNERGY meter ── */}
+      <div style={{
+        marginLeft: 8, padding: '6px 14px',
+        border: `1px solid ${c}40`, borderRadius: 10,
+        background: `${c}08`, minWidth: 160,
+        transition: 'border-color 0.3s, background 0.3s',
+      }}>
+        {/* Label row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>
+            TEAM SYNERGY
+          </span>
+          {synergyOver && (
+            <span style={{
+              fontSize: '0.38rem', color: '#ff3860', border: '1px solid #ff386050',
+              borderRadius: 3, padding: '0 4px', background: '#ff386018',
+              animation: 'synergy-warn 0.8s ease-in-out infinite',
+              fontFamily: 'monospace',
+            }}>⚠ OVERLOAD</span>
+          )}
+        </div>
+        {/* Big number */}
+        <div style={{
+          fontSize: '1.1rem', fontWeight: 900, fontFamily: 'monospace',
+          color: c, lineHeight: 1,
+          textShadow: `0 0 10px ${c}`,
+          transform: flash ? 'scale(1.12)' : 'scale(1)',
+          transition: 'transform 0.18s cubic-bezier(.22,1,.36,1), color 0.3s, text-shadow 0.3s',
+          marginBottom: 5,
+        }}>
+          {synergy}<span style={{ fontSize: '0.55rem', fontWeight: 700 }}>%</span>
+        </div>
+        {/* Progress bar with threshold marker */}
+        <div style={{ position: 'relative', height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 3 }}>
+          {/* 50% line */}
+          <div style={{
+            position: 'absolute', left: '50%', top: -3, bottom: -3, width: 1.5,
+            background: synergyOver ? '#ff386070' : 'rgba(255,255,255,0.4)', zIndex: 2,
+          }}/>
+          <div style={{
+            height: '100%', borderRadius: 3,
+            width: `${barPct}%`,
+            background: synergyOver
+              ? 'linear-gradient(to right, #ff6600, #ff3860)'
+              : 'linear-gradient(to right, #00e5ff80, #00e5ff)',
+            boxShadow: `0 0 8px ${c}80`,
+            transition: 'width 0.25s ease, background 0.3s',
+          }}/>
+        </div>
+        <div style={{
+          marginTop: 3, fontSize: '0.38rem', fontFamily: 'monospace',
+          color: synergyOver ? '#ff386090' : 'rgba(255,255,255,0.2)',
+          transition: 'color 0.3s',
+        }}>
+          {synergyOver ? '超载！请降低属性点后再部署' : '≤ 50% 可正常部署探员'}
+        </div>
+      </div>
+
       {/* Main deploy */}
       <button
         onClick={handleDeploy}
         disabled={deploying || synergyOver}
         title={synergyOver ? '协同值超载（>50%），请降低探员属性后再部署' : ''}
         style={{
-          flex: 1, maxWidth: 320, marginLeft: 'auto',
+          flex: 1, maxWidth: 300, marginLeft: 'auto',
           padding: '11px 24px', borderRadius: 10,
           border: `2px solid ${synergyOver ? '#ff386070' : deploying ? 'rgba(0,229,255,0.3)' : '#00e5ffaa'}`,
           background: synergyOver
@@ -805,7 +896,7 @@ function DeployControls({ onDeploy, onSave, onLoad, synergyOver }) {
           fontFamily: 'monospace', fontWeight: 900, fontSize: '0.78rem', letterSpacing: '0.2em',
           textShadow: synergyOver ? '0 0 12px rgba(255,56,96,0.9)' : '0 0 12px rgba(0,229,255,0.9)',
           boxShadow: synergyOver
-            ? '0 0 24px rgba(255,56,96,0.25)'
+            ? '0 0 24px rgba(255,56,96,0.3)'
             : '0 0 24px rgba(0,200,255,0.35), 0 0 50px rgba(0,200,255,0.1)',
           transition: 'all 0.3s', position: 'relative', overflow: 'hidden',
           opacity: synergyOver ? 0.85 : 1,
@@ -823,7 +914,7 @@ function DeployControls({ onDeploy, onSave, onLoad, synergyOver }) {
       </button>
       <style>{`
         @keyframes btn-shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
-        @keyframes synergy-warn{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes synergy-warn{0%,100%{opacity:1}50%{opacity:0.35}}
       `}</style>
     </div>
   );
@@ -948,7 +1039,8 @@ export default function HolographicLobby({ onDeploy }) {
         onDeploy={handleDeploy}
         onSave={() => LocalStorage.saveTeamConfig(agents)}
         onLoad={() => { const s = LocalStorage.loadTeamConfig(); if (s) setAgents(s); }}
-        synergyOver={calcSynergy(agents) > 50}
+        synergy={synergy}
+        synergyOver={synergyOver}
       />
     </div>
   );
