@@ -4,6 +4,7 @@ import { LocalStorage } from '@/game/gameState';
 import { DEFAULT_AGENT_CONFIG } from '@/game/caseData';
 import { loadProgression, getLevelFromXP, getXPToNextLevel } from '@/game/agentProgression';
 import SkillTreePanel from '@/components/game/SkillTreePanel';
+import AgentRadarChart from '@/components/game/AgentRadarChart';
 
 // ── Agent definitions ─────────────────────────────────────────────────────────
 const AGENT_DEFS = [
@@ -656,7 +657,7 @@ function HoloStage({ agents, selectedIdx, onSelect, accentColor, progression }) 
 }
 
 // ── Right: Attribute Config + Skill Tree ─────────────────────────────────────
-function AttributePanel({ agent, agentDef, agentIdx, onUpdate }) {
+function AttributePanel({ agent, agentDef, agentIdx, onUpdate, allAgents }) {
   const [tab, setTab] = useState('attrs'); // 'attrs' | 'skills'
   const attrs = [
     { key: 'logic_power', label: 'LOGIC POWER', labelZh: '逻辑强度', color: '#00e5ff', max: 100 },
@@ -711,6 +712,19 @@ function AttributePanel({ agent, agentDef, agentIdx, onUpdate }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
           {tab === 'attrs' && (
             <>
+              {/* Radar chart */}
+              <div style={{
+                display: 'flex', justifyContent: 'center',
+                padding: '8px 0 4px', marginBottom: 6,
+                borderBottom: `1px solid ${agentDef.color}20`,
+              }}>
+                <AgentRadarChart
+                  agent={agent}
+                  agentColor={agentDef.color}
+                  allAgents={allAgents}
+                  size={150}
+                />
+              </div>
               {attrs.map(attr => (
                 <AttrSlider
                   key={attr.key}
@@ -1032,6 +1046,7 @@ export default function HolographicLobby({ onDeploy }) {
           agentDef={AGENT_DEFS[selectedIdx]}
           agentIdx={selectedIdx}
           onUpdate={updateAgent}
+          allAgents={agents}
         />
       </div>
 
